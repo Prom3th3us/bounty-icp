@@ -65,11 +65,14 @@ If you are hosting frontend code somewhere without using DFX, you may need to ma
 * Project created using `dfx new bounty-icp`
 
 * To build:
-`cargo build --target wasm32-unknown-unknown --release -p bounty-icp-backend --locked`
+`cargo build --target wasm32-unknown-unknown --release -p bounty-icp-backend`
 
 * To build: pre-requisites
 1. make sure you have installed the wasm32-unknown-unknown target:
 `rustup target add wasm32-unknown-unknown`
+
+2. install openssl tools
+- macos: `brew install openssl`
 
 * To run
 1. in a separate terminal start the local icp network
