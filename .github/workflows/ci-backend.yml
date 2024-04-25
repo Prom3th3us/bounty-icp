@@ -2,10 +2,10 @@ name: ci-backend
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
     paths:
-      - ./**
+      - backend/**
       - .github/workflows/provision-darwin.sh
       - .github/workflows/provision-linux.sh
       - .github/workflows/backend.yaml
