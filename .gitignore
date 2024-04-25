@@ -11,7 +11,7 @@
 .dfx/
 
 # generated files
-**/declarations/
+src/declarations/
 
 # rust
 target/
@@ -19,10 +19,10 @@ target/
 # frontend code
 node_modules/
 dist/
-.svelte-kit/
 
 # environment variables
 .env
 
+# lock files
 Cargo.lock
 package-lock.json
