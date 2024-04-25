@@ -22,7 +22,3 @@ dist/
 
 # environment variables
 .env
-
-# lock files
-Cargo.lock
-package-lock.json
