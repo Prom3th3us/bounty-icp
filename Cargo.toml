@@ -1,0 +1,5 @@
+[workspace]
+members = [
+    "src/bounty-icp-backend"
+]
+resolver = "2"
