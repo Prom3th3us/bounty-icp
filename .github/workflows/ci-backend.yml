@@ -1,4 +1,5 @@
 name: ci-backend
+
 on:
   push:
     branches:
@@ -9,28 +10,41 @@ on:
       - .github/workflows/provision-darwin.sh
       - .github/workflows/provision-linux.sh
       - .github/workflows/backend.yaml
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
 jobs:
   backend-darwin:
     runs-on: macos-12
     steps:
       - uses: actions/checkout@v1
+
+      - name: Create .env file
+        run: echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" > .env
+
       - name: Provision Darwin
         run: bash .github/workflows/provision-darwin.sh
+
       - name: Rust Send HTTP GET Darwin
         run: |
           dfx start --background
           pushd .
           RUSTFLAGS=-Ctarget-cpu=mvp make test
           popd
+
   backend-linux:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v1
+
+      - name: Create .env file
+        run: echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" > .env
+
       - name: Provision Linux
         run: bash .github/workflows/provision-linux.sh
+
       - name: Rust Send HTTP GET Linux
         run: |
           dfxvm update
