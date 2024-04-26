@@ -1,3 +1,13 @@
+type issue = record {
+    state: opt text;
+    login: opt text;
+    id: opt text;
+    milestone_state: opt text;
+    closed_at: opt text;
+};
+
+type gh_token = text;
+
 service : {
-    "get_icp_usd_exchange": () -> (text);
+    "get_gh_issue": (gh_token) -> (issue);
 }

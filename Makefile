@@ -1,3 +1,6 @@
+# Load environment variables from .env file
+include .env
+
 .PHONY: all
 all: build
 
@@ -25,8 +28,13 @@ upgrade: build
 .PHONY: test
 .SILENT: test
 test: install
-	dfx canister call backend get_icp_usd_exchange \
-		| grep '\[1682978460,5\.714,5\.718,5\.714,5\.714,243\.5678\]' && echo 'PASS'
+	# Call the backend canister to get the GitHub issue and capture the output
+	@echo "Calling get_gh_issue on backend canister..."
+	@TMP_FILE=$$(mktemp); \
+	dfx canister call backend get_gh_issue '("${GITHUB_TOKEN}")' > $$TMP_FILE; \
+	echo "get_gh_issue response:"; \
+	cat $$TMP_FILE; \
+	rm -f $$TMP_FILE
 
 .PHONY: clean
 .SILENT: clean
