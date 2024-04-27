@@ -10,4 +10,5 @@ type gh_token = text;
 
 service : {
     "get_gh_issue": (gh_token) -> (issue);
+    "get_gh_fixed_by": (gh_token) -> (text);
 }

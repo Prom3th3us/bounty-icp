@@ -16,6 +16,10 @@ pub fn github_api_host() -> String {
   return "api.github.com".to_string();   
 }
 
+pub fn github_host() -> String {
+  return "github.com".to_string();   
+}
+
 pub fn mk_request_headers(github_token: String) -> Vec<HttpHeader> {
     return vec![
         HttpHeader {

@@ -45,6 +45,7 @@ dependencies = [
  "candid",
  "ic-cdk",
  "ic-cdk-macros",
+ "regex",
  "serde",
  "serde_bytes",
  "serde_json",

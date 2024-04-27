@@ -29,7 +29,7 @@ pub async fn get_issue_impl(
         method: HttpMethod::GET,
         body: None,
         max_response_bytes: None,
-        transform: None, // We'll handle transformation separately
+        transform: None,
         headers: request_headers,
     };
 
