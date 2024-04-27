@@ -3,7 +3,20 @@ use ic_cdk::api::management_canister::http_request::{
 };
 use serde_json::Value;
 
-use super::super::utils::{github_api_host, mk_request_headers, IssueResponse};
+use candid::CandidType;
+use serde::{Deserialize, Serialize};
+
+use super::super::utils::{github_api_host, mk_request_headers};
+
+// Define the IssueResponse struct to represent the transformed response
+#[derive(Debug, Serialize, Deserialize, CandidType)]
+pub struct IssueResponse {
+    pub state: Option<String>,
+    pub login: Option<String>,
+    pub id: Option<String>,
+    pub milestone_state: Option<String>,
+    pub closed_at: Option<String>,
+}
 
 pub async fn get_issue_impl(
     owner: String,

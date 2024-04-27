@@ -8,7 +8,7 @@ mod github {
     pub mod client;
 }
 
-use github::utils::IssueResponse;
+use github::api::get_issue::IssueResponse;
 use github::client::GithubClient;
 
 #[ic_cdk::update]

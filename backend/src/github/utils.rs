@@ -1,16 +1,4 @@
 use ic_cdk::api::management_canister::http_request::HttpHeader;
-use serde::{Deserialize, Serialize};
-use candid::CandidType;
-
-// Define the IssueResponse struct to represent the transformed response
-#[derive(Debug, Serialize, Deserialize, CandidType)]
-pub struct IssueResponse {
-    pub state: Option<String>,
-    pub login: Option<String>,
-    pub id: Option<String>,
-    pub milestone_state: Option<String>,
-    pub closed_at: Option<String>,
-}
 
 pub fn github_api_host() -> String {
   return "api.github.com".to_string();   

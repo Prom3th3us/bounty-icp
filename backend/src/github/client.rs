@@ -1,8 +1,6 @@
 use super::api::get_fixed_by::get_fixed_by_impl;
-use super::api::get_issue::get_issue_impl;
+use super::api::get_issue::{get_issue_impl, IssueResponse};
 use super::api::get_is_merged::get_is_merged_impl;
-
-use super::utils::IssueResponse;
 
 pub struct GithubClient {
     pub owner: String,
