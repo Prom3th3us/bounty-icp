@@ -1,5 +1,6 @@
 use super::api::get_fixed_by::get_fixed_by_impl;
 use super::api::get_issue::get_issue_impl;
+use super::api::get_is_merged::get_is_merged_impl;
 
 use super::utils::IssueResponse;
 
@@ -27,4 +28,13 @@ impl GithubClient {
         )
         .await
     }
+    pub async fn get_is_merged(&self, pr_nbr: i32) -> String {
+        get_is_merged_impl(
+            self.owner.clone(),
+            self.repo.clone(),
+            pr_nbr,
+        )
+        .await
+    }
+    
 }

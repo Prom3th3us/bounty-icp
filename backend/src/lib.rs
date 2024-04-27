@@ -2,6 +2,7 @@ mod github {
     pub mod api {
         pub mod get_issue;
         pub mod get_fixed_by;
+        pub mod get_is_merged;
     }
     pub mod utils;
     pub mod client;
@@ -26,4 +27,13 @@ async fn get_gh_fixed_by(github_token: String) -> String {
     let issue_nbr = 1370;
     let client = GithubClient{owner, repo, github_token};
     return client.get_fixed_by(issue_nbr).await;
+}
+
+#[ic_cdk::update]
+async fn get_gh_is_merged(github_token: String) -> String {
+    let owner = "input-output-hk".to_string();
+    let repo = "hydra".to_string();
+    let pr_nbr = 1266;
+    let client = GithubClient{owner, repo, github_token};
+    return client.get_is_merged(pr_nbr).await;
 }

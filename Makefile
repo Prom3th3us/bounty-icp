@@ -39,13 +39,24 @@ test-1: install
 .PHONY: test
 .SILENT: test
 test-2: install
-	# Call the backend canister to get the GitHub issue and capture the output
+	# Call the backend canister to get the GitHub PR that close some issue and capture the output
 	@echo "Calling get_gh_fixed_by on backend canister..."
 	@TMP_FILE=$$(mktemp); \
 	dfx canister call backend get_gh_fixed_by '("${GITHUB_TOKEN}")' > $$TMP_FILE; \
 	echo "get_gh_fixed_by response:"; \
 	cat $$TMP_FILE; \
 	rm -f $$TMP_FILE
+
+.PHONY: test
+.SILENT: test
+test-3: install
+	# Call the backend canister to get the GitHub PR merge status and capture the output
+	@echo "Calling get_gh_is_merged on backend canister..."
+	@TMP_FILE=$$(mktemp); \
+	dfx canister call backend get_gh_is_merged '("${GITHUB_TOKEN}")' > $$TMP_FILE; \
+	echo "get_gh_is_merged response:"; \
+	cat $$TMP_FILE; \
+	rm -f $$TMP_FILE	
 
 .PHONY: clean
 .SILENT: clean
