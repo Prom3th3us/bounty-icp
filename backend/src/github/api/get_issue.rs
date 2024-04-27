@@ -1,46 +1,27 @@
-use serde::{Deserialize, Serialize};
 use ic_cdk::api::management_canister::http_request::{
-    http_request, CanisterHttpRequestArgument, HttpHeader, HttpMethod, HttpResponse
+    http_request, CanisterHttpRequestArgument, HttpMethod, HttpResponse,
 };
 use serde_json::Value;
-use candid::CandidType;
 
-// Define the IssueResponse struct to represent the transformed response
-#[derive(Debug, Serialize, Deserialize, CandidType)]
-pub struct IssueResponse {
-    state: Option<String>,
-    login: Option<String>,
-    id: Option<String>,
-    milestone_state: Option<String>,
-    closed_at: Option<String>,
-}
+use super::super::utils::{github_api_host, mk_request_headers, IssueResponse};
 
-pub async fn get_gh_issue_impl(github_token: String) -> IssueResponse {
+pub async fn get_issue_impl(
+    owner: String,
+    repo: String,
+    issue_nbr: i32,
+    github_token: String,
+) -> IssueResponse {
     // Setup the URL and its query parameters
-    let owner = "input-output-hk";
-    let repo = "hydra";
-    let issue_nbr = 1404;
-    let host = "api.github.com";
     let url = format!(
         "https://{}/repos/{}/{}/issues/{}",
-        host, owner, repo, issue_nbr
+        github_api_host(),
+        owner,
+        repo,
+        issue_nbr
     );
 
     // Prepare headers for the system http_request call
-    let request_headers = vec![
-        HttpHeader {
-            name: "Authorization".to_string(),
-            value: format!("Bearer {}", github_token),
-        },
-        HttpHeader {
-            name: "Accept".to_string(),
-            value: "application/vnd.github+json".to_string(),
-        },
-        HttpHeader {
-            name: "X-GitHub-Api-Version".to_string(),
-            value: "2022-11-28".to_string(),
-        },
-    ];
+    let request_headers = mk_request_headers(github_token);
 
     // Create the request argument
     let request = CanisterHttpRequestArgument {
@@ -74,9 +55,7 @@ pub async fn get_gh_issue_impl(github_token: String) -> IssueResponse {
 }
 
 // Define a function to transform the response body
-fn transform_response(
-    raw_response: HttpResponse,
-) -> IssueResponse {
+fn transform_response(raw_response: HttpResponse) -> IssueResponse {
     // Deserialize the raw response body into a serde_json::Value
     let parsed_response: Value = serde_json::from_slice(&raw_response.body)
         .unwrap_or_else(|e| panic!("Failed to parse JSON response: {}", e));
