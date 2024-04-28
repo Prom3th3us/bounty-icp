@@ -15,18 +15,21 @@ pub struct PrDetailsResponse {
     pub closed_at: Option<String>,
     pub merge_commit_sha: Option<String>,
     pub merged_at: Option<String>,
-    pub _links: Option<Link>,
-    pub merged: Option<String>,
+    pub links: Option<Link>,
+    pub merged: Option<bool>,
     pub merged_by: Option<User>,
 }
+
 #[derive(Debug, Serialize, Deserialize, CandidType)]
 pub struct Link {
     pub issue: IssueLink,
 }
+
 #[derive(Debug, Serialize, Deserialize, CandidType, Default)]
 pub struct IssueLink {
     pub href: String,
 }
+
 #[derive(Debug, Serialize, Deserialize, CandidType)]
 pub struct User {
     pub login: String,
@@ -108,37 +111,41 @@ fn transform_response(raw_response: HttpResponse) -> PrDetailsResponse {
             let merge_commit_sha = obj
                 .get("merge_commit_sha")
                 .map(|value| value.as_str().map(|s| s.to_string()))
-                .flatten();       
+                .flatten();
             let merged_at = obj
                 .get("merged_at")
                 .map(|value| value.as_str().map(|s| s.to_string()))
                 .flatten();
-            let _links = obj
-            .get("_links")
-            .and_then(|value| value.get("issue"))
-            .and_then(|issue| issue.as_object())
-            .map(|issue| {
-                Link {
+            let links = obj
+                .get("_links")
+                .and_then(|value| value.get("issue"))
+                .and_then(|issue| issue.as_object())
+                .map(|issue| Link {
                     issue: IssueLink {
-                        href: issue.get("href").and_then(|href| href.as_str()).unwrap_or_default().to_string(),
-                    }
-                }
-            })
-            .map(Some)
-            .unwrap_or_default();
-            let merged = obj
-                .get("merged")
-                .map(|value| value.as_str().map(|s| s.to_string()))
-                .flatten();
-            let merged_by = obj
-                .get("merged_by")                      
-                .map(|value| {
-                    value.as_object().map(|user| {     
-                    User {
-                        login: user.get("login").and_then(|login| login.as_str()).unwrap_or_default().to_string(),  
-                        id: user.get("id").and_then(|id| id.as_u64()).unwrap_or_default(),                            
-                    }
+                        href: issue
+                            .get("href")
+                            .and_then(|href| href.as_str())
+                            .unwrap_or_default()
+                            .to_string(),
+                    },
                 })
+                .map(Some)
+                .unwrap_or_default();
+            let merged = obj.get("merged").map(|value| value.as_bool()).flatten();
+            let merged_by = obj
+                .get("merged_by")
+                .map(|value| {
+                    value.as_object().map(|user| User {
+                        login: user
+                            .get("login")
+                            .and_then(|login| login.as_str())
+                            .unwrap_or_default()
+                            .to_string(),
+                        id: user
+                            .get("id")
+                            .and_then(|id| id.as_u64())
+                            .unwrap_or_default(),
+                    })
                 })
                 .flatten();
 
@@ -148,9 +155,9 @@ fn transform_response(raw_response: HttpResponse) -> PrDetailsResponse {
                 closed_at,
                 merge_commit_sha,
                 merged_at,
-                _links,
+                links,
                 merged,
-                merged_by
+                merged_by,
             })
         })
         .unwrap_or_else(|| panic!("Failed to extract fields from parsed response"));
