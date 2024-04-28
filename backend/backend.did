@@ -6,11 +6,36 @@ type issue = record {
     closed_at: opt text;
 };
 
+type Link = record {
+    issue: opt IssueLink;
+};
+
+type IssueLink = record {
+    href: opt text;
+};
+
+type PrDetailsResponse = record {
+    state: opt text;
+    closed_at: opt text;
+    merge_commit_sha: opt text;
+    merged_at: opt text;
+    _links: opt Link;
+    merged: opt text;
+    merged_by: opt User;
+};
+
+type User = record {
+    login: opt text;
+    id: opt nat64;
+};
+
+
 type gh_token = text;
 
 service : {
     "get_gh_issue": (gh_token) -> (issue);
     "get_gh_fixed_by": (gh_token) -> (text);
-    "get_gh_is_merged": (gh_token) -> (text);   
+    "get_gh_is_merged": (gh_token) -> (text);
+    "get_gh_merged_details": (gh_token) -> (text);   
 }
 

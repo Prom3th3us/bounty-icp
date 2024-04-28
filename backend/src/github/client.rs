@@ -1,6 +1,8 @@
 use super::api::get_fixed_by::get_fixed_by_impl;
 use super::api::get_issue::{get_issue_impl, IssueResponse};
 use super::api::get_is_merged::get_is_merged_impl;
+use super::api::get_merged_details::{get_merge_details_impl, PrDetailsResponse};
+
 
 pub struct GithubClient {
     pub owner: String,
@@ -34,5 +36,15 @@ impl GithubClient {
         )
         .await
     }
+    pub async fn get_merged_details(&self, pr_nbr: i32) -> PrDetailsResponse {
+        get_merge_details_impl(
+            self.owner.clone(),
+            self.repo.clone(),
+            pr_nbr,
+            self.github_token.clone(),
+        )
+        .await
+    }
+
     
 }

@@ -72,6 +72,18 @@ test-3: install
 	cat $$TMP_FILE; \
 	rm -f $$TMP_FILE	
 
+.PHONY: test
+.SILENT: test
+test-4: install
+	# Call the backend canister to get the GitHub closing PR details and capture the output
+	@echo "Calling get_gh_merged_details on backend canister..."
+	@TMP_FILE=$$(mktemp); \
+	dfx canister call backend get_gh_merged_details '("${GITHUB_TOKEN}")' > $$TMP_FILE; \
+	echo "get_gh_merged_details response:"; \
+	cat $$TMP_FILE; \
+	rm -f $$TMP_FILE	
+
+
 .PHONY: clean
 .SILENT: clean
 clean:
