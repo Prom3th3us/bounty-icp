@@ -16,6 +16,7 @@ pub struct IssueResponse {
     pub id: Option<String>,
     pub milestone_state: Option<String>,
     pub closed_at: Option<String>,
+    pub reason: Option<String>,
 }
 
 pub async fn get_issue_impl(
@@ -103,6 +104,10 @@ fn transform_response(raw_response: HttpResponse) -> IssueResponse {
                 .get("closed_at")
                 .map(|value| value.as_str().map(|s| s.to_string()))
                 .flatten();
+            let reason = obj
+                .get("state_reason")
+                .map(|value| value.as_str().map(|s| s.to_string()))
+                .flatten();
 
             // Construct the transformed response object
             Some(IssueResponse {
@@ -111,6 +116,7 @@ fn transform_response(raw_response: HttpResponse) -> IssueResponse {
                 id,
                 milestone_state,
                 closed_at,
+                reason
             })
         })
         .unwrap_or_else(|| panic!("Failed to extract fields from parsed response"));

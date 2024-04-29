@@ -18,7 +18,7 @@ use github::client::GithubClient;
 async fn get_gh_issue(github_token: String) -> IssueResponse {
     let owner = "input-output-hk".to_string();
     let repo = "hydra".to_string();
-    let issue_nbr = 1370;
+    let issue_nbr = 1218;
     let client = GithubClient {
         owner,
         repo,

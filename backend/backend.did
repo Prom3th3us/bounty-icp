@@ -4,6 +4,7 @@ type issue = record {
     id: opt text;
     milestone_state: opt text;
     closed_at: opt text;
+    reason: opt text;
 };
 
 type link = record {
