@@ -1,4 +1,9 @@
-service : {
-    "healthcheck": () -> (text);
-}
+type Contributor = record {
+    address: principal;
+    crypto_address: text;
+};
 
+service : (principal, int32) -> {
+    "healthcheck": () -> (text);
+    "accept": (Contributor) -> ();
+}

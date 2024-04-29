@@ -28,6 +28,56 @@ upgrade: build
 	dfx canister install github --mode=upgrade
 	dfx canister install bounty --mode=upgrade
 
+.PHONY: clean
+.SILENT: clean
+clean:
+	rm -fr .dfx
+
+# tests
+.PHONY: test-1
+.SILENT: test-1
+test-1: install
+	# Call the github canister to get the GitHub issue and capture the output
+	@echo "Calling get_issue on github canister..."
+	@TMP_FILE=$$(mktemp); \
+	dfx canister call github get_issue '("${GITHUB_TOKEN}")' > $$TMP_FILE; \
+	echo "get_issue response:"; \
+	cat $$TMP_FILE; \
+	rm -f $$TMP_FILE
+
+.PHONY: test-2
+.SILENT: test-2
+test-2: install
+	# Call the github canister to get the GitHub PR that close some issue and capture the output
+	@echo "Calling get_fixed_by on github canister..."
+	@TMP_FILE=$$(mktemp); \
+	dfx canister call github get_fixed_by '("${GITHUB_TOKEN}")' > $$TMP_FILE; \
+	echo "get_fixed_by response:"; \
+	cat $$TMP_FILE; \
+	rm -f $$TMP_FILE
+
+.PHONY: test-3
+.SILENT: test-3
+test-3: install
+	# Call the github canister to get the GitHub PR merge status and capture the output
+	@echo "Calling get_is_merged on github canister..."
+	@TMP_FILE=$$(mktemp); \
+	dfx canister call github get_is_merged '("${GITHUB_TOKEN}")' > $$TMP_FILE; \
+	echo "get_is_merged response:"; \
+	cat $$TMP_FILE; \
+	rm -f $$TMP_FILE
+
+.PHONY: test-4
+.SILENT: test-4
+test-4: install
+	# Call the github canister to get the GitHub closing PR details and capture the output
+	@echo "Calling get_merged_details on github canister..."
+	@TMP_FILE=$$(mktemp); \
+	dfx canister call github get_merged_details '("${GITHUB_TOKEN}")' > $$TMP_FILE; \
+	echo "get_merged_details response:"; \
+	cat $$TMP_FILE; \
+	rm -f $$TMP_FILE	
+
 .PHONY: test-a
 .SILENT: test-a
 test-a: install
@@ -38,53 +88,3 @@ test-a: install
 	echo "healthcheck response:"; \
 	cat $$TMP_FILE; \
 	rm -f $$TMP_FILE
-
-.PHONY: test
-.SILENT: test
-test-1: install
-	# Call the github canister to get the GitHub issue and capture the output
-	@echo "Calling get_issue on github canister..."
-	@TMP_FILE=$$(mktemp); \
-	dfx canister call github get_issue '("${GITHUB_TOKEN}")' > $$TMP_FILE; \
-	echo "get_issue response:"; \
-	cat $$TMP_FILE; \
-	rm -f $$TMP_FILE
-
-.PHONY: test
-.SILENT: test
-test-2: install
-	# Call the github canister to get the GitHub PR that close some issue and capture the output
-	@echo "Calling get_fixed_by on github canister..."
-	@TMP_FILE=$$(mktemp); \
-	dfx canister call github get_fixed_by '("${GITHUB_TOKEN}")' > $$TMP_FILE; \
-	echo "get_fixed_by response:"; \
-	cat $$TMP_FILE; \
-	rm -f $$TMP_FILE
-
-.PHONY: test
-.SILENT: test
-test-3: install
-	# Call the github canister to get the GitHub PR merge status and capture the output
-	@echo "Calling get_is_merged on github canister..."
-	@TMP_FILE=$$(mktemp); \
-	dfx canister call github get_is_merged '("${GITHUB_TOKEN}")' > $$TMP_FILE; \
-	echo "get_is_merged response:"; \
-	cat $$TMP_FILE; \
-	rm -f $$TMP_FILE	
-
-.PHONY: test
-.SILENT: test
-test-4: install
-	# Call the github canister to get the GitHub closing PR details and capture the output
-	@echo "Calling get_merged_details on github canister..."
-	@TMP_FILE=$$(mktemp); \
-	dfx canister call github get_merged_details '("${GITHUB_TOKEN}")' > $$TMP_FILE; \
-	echo "get_merged_details response:"; \
-	cat $$TMP_FILE; \
-	rm -f $$TMP_FILE	
-
-
-.PHONY: clean
-.SILENT: clean
-clean:
-	rm -fr .dfx

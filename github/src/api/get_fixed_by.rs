@@ -29,8 +29,11 @@ pub async fn get_fixed_by_impl(owner: String, repo: String, issue_nbr: i32) -> S
         headers: vec![],
     };
 
+    // FIXME
+    let cycles = 10;
+
     // Make the HTTP request and wait for the response
-    match http_request(request).await {
+    match http_request(request, cycles).await {
         Ok((response,)) => {
             //We need to decode that Vec<u8> that is the body into readable text.
             //To do this, we:

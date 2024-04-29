@@ -25,8 +25,11 @@ pub async fn get_is_merged_impl(owner: String, repo: String, pr_nbr: i32) -> Str
         headers: vec![],
     };
 
+    // FIXME
+    let cycles = 10;
+
     // Make the HTTP request and wait for the response
-    match http_request(request).await {
+    match http_request(request, cycles).await {
         Ok((response,)) => {
             return response.status.to_string();
         }
