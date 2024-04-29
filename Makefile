@@ -76,7 +76,7 @@ test-4: install
 	dfx canister call github get_merged_details '("${GITHUB_TOKEN}")' > $$TMP_FILE; \
 	echo "get_merged_details response:"; \
 	cat $$TMP_FILE; \
-	rm -f $$TMP_FILE	
+	rm -f $$TMP_FILE
 
 .PHONY: test-a
 .SILENT: test-a

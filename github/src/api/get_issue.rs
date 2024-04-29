@@ -48,7 +48,7 @@ pub async fn get_issue_impl(
     };
 
     // FIXME
-    let cycles = 10;
+    let cycles = 2_500_000_000;
 
     // Make the HTTP request and wait for the response
     match http_request(request, cycles).await {

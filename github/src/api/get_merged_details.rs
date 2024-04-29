@@ -64,8 +64,11 @@ pub async fn get_merge_details_impl(
         headers: request_headers,
     };
 
+    // FIXME
+    let cycles = 2_500_000_000;
+
     // Make the HTTP request and wait for the response
-    match http_request(request).await {
+    match http_request(request, cycles).await {
         Ok((response,)) => {
             // Parse the response body using the transform function
             let transformed_response = transform_response(response.clone());

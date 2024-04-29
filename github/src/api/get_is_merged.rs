@@ -26,7 +26,7 @@ pub async fn get_is_merged_impl(owner: String, repo: String, pr_nbr: i32) -> Str
     };
 
     // FIXME
-    let cycles = 10;
+    let cycles = 2_500_000_000;
 
     // Make the HTTP request and wait for the response
     match http_request(request, cycles).await {

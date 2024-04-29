@@ -30,7 +30,7 @@ pub async fn get_fixed_by_impl(owner: String, repo: String, issue_nbr: i32) -> S
     };
 
     // FIXME
-    let cycles = 10;
+    let cycles = 2_500_000_000;
 
     // Make the HTTP request and wait for the response
     match http_request(request, cycles).await {
