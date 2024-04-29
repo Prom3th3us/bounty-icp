@@ -92,15 +92,17 @@ fn transform_response(raw_response: HttpResponse) -> IssueResponse {
             let id = obj
                 .get("closed_by")
                 .and_then(|closed_by| closed_by.get("id"))
-                .and_then(|value| value.as_str().map(|s| s.to_string()));
+                .and_then(|value| value.as_i64().map(|s| s.to_string()));
+            //TODO: check why are we trying to catch milestone_state,
+            //may "state_reason": "completed" fullfill our needs?
             let milestone_state = obj
                 .get("milestone")
                 .and_then(|milestone| milestone.get("state"))
                 .and_then(|value| value.as_str().map(|s| s.to_string()));
             let closed_at = obj
-                .get("milestone")
-                .and_then(|milestone| milestone.get("closed_at"))
-                .and_then(|value| value.as_str().map(|s| s.to_string()));
+                .get("closed_at")
+                .map(|value| value.as_str().map(|s| s.to_string()))
+                .flatten();
 
             // Construct the transformed response object
             Some(IssueResponse {

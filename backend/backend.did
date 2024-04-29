@@ -29,7 +29,6 @@ type user = record {
     id: opt nat64;
 };
 
-
 type gh_token = text;
 
 service : {

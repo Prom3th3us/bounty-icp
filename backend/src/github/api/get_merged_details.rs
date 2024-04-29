@@ -43,7 +43,6 @@ pub async fn get_merge_details_impl(
     github_token: String,
 ) -> PrDetailsResponse {
     // Setup the URL and its query parameters
-
     let url = format!(
         "https://{}/repos/{}/{}/pulls/{}",
         github_api_host(),
