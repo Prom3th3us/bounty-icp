@@ -12,24 +12,24 @@ node_modules:
 .PHONY: build
 .SILENT: build
 build: node_modules
-	dfx canister create backend
+	dfx canister create github
 	dfx canister create bounty
 	dfx build
 
 .PHONY: install
 .SILENT: install
 install: build
-	dfx canister install backend --mode reinstall --yes
+	dfx canister install github --mode reinstall --yes
 	dfx canister install bounty --mode reinstall --yes
 
 .PHONY: upgrade
 .SILENT: upgrade
 upgrade: build
-	dfx canister install backend --mode=upgrade
+	dfx canister install github --mode=upgrade
 	dfx canister install bounty --mode=upgrade
 
-.PHONY: test
-.SILENT: test
+.PHONY: test-a
+.SILENT: test-a
 test-a: install
 	# Call the bounty canister to get the GitHub issue and capture the output
 	@echo "Calling healthcheck on bounty canister..."
@@ -42,44 +42,44 @@ test-a: install
 .PHONY: test
 .SILENT: test
 test-1: install
-	# Call the backend canister to get the GitHub issue and capture the output
-	@echo "Calling get_gh_issue on backend canister..."
+	# Call the github canister to get the GitHub issue and capture the output
+	@echo "Calling get_issue on github canister..."
 	@TMP_FILE=$$(mktemp); \
-	dfx canister call backend get_gh_issue '("${GITHUB_TOKEN}")' > $$TMP_FILE; \
-	echo "get_gh_issue response:"; \
+	dfx canister call github get_issue '("${GITHUB_TOKEN}")' > $$TMP_FILE; \
+	echo "get_issue response:"; \
 	cat $$TMP_FILE; \
 	rm -f $$TMP_FILE
 
 .PHONY: test
 .SILENT: test
 test-2: install
-	# Call the backend canister to get the GitHub PR that close some issue and capture the output
-	@echo "Calling get_gh_fixed_by on backend canister..."
+	# Call the github canister to get the GitHub PR that close some issue and capture the output
+	@echo "Calling get_fixed_by on github canister..."
 	@TMP_FILE=$$(mktemp); \
-	dfx canister call backend get_gh_fixed_by '("${GITHUB_TOKEN}")' > $$TMP_FILE; \
-	echo "get_gh_fixed_by response:"; \
+	dfx canister call github get_fixed_by '("${GITHUB_TOKEN}")' > $$TMP_FILE; \
+	echo "get_fixed_by response:"; \
 	cat $$TMP_FILE; \
 	rm -f $$TMP_FILE
 
 .PHONY: test
 .SILENT: test
 test-3: install
-	# Call the backend canister to get the GitHub PR merge status and capture the output
-	@echo "Calling get_gh_is_merged on backend canister..."
+	# Call the github canister to get the GitHub PR merge status and capture the output
+	@echo "Calling get_is_merged on github canister..."
 	@TMP_FILE=$$(mktemp); \
-	dfx canister call backend get_gh_is_merged '("${GITHUB_TOKEN}")' > $$TMP_FILE; \
-	echo "get_gh_is_merged response:"; \
+	dfx canister call github get_is_merged '("${GITHUB_TOKEN}")' > $$TMP_FILE; \
+	echo "get_is_merged response:"; \
 	cat $$TMP_FILE; \
 	rm -f $$TMP_FILE	
 
 .PHONY: test
 .SILENT: test
 test-4: install
-	# Call the backend canister to get the GitHub closing PR details and capture the output
-	@echo "Calling get_gh_merged_details on backend canister..."
+	# Call the github canister to get the GitHub closing PR details and capture the output
+	@echo "Calling get_merged_details on github canister..."
 	@TMP_FILE=$$(mktemp); \
-	dfx canister call backend get_gh_merged_details '("${GITHUB_TOKEN}")' > $$TMP_FILE; \
-	echo "get_gh_merged_details response:"; \
+	dfx canister call github get_merged_details '("${GITHUB_TOKEN}")' > $$TMP_FILE; \
+	echo "get_merged_details response:"; \
 	cat $$TMP_FILE; \
 	rm -f $$TMP_FILE	
 

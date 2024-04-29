@@ -1,21 +1,19 @@
-mod github {
-    pub mod api {
-        pub mod get_fixed_by;
-        pub mod get_is_merged;
-        pub mod get_issue;
-        pub mod get_merged_details;
-    }
-    pub mod client;
-    pub mod utils;
+mod api {
+    pub mod get_fixed_by;
+    pub mod get_is_merged;
+    pub mod get_issue;
+    pub mod get_merged_details;
 }
+mod client;
+mod utils;
 
-use github::api::get_issue::IssueResponse;
-use github::api::get_merged_details::PrDetailsResponse;
+use api::get_issue::IssueResponse;
+use api::get_merged_details::PrDetailsResponse;
 
-use github::client::GithubClient;
+use client::GithubClient;
 
 #[ic_cdk::update]
-async fn get_gh_issue(github_token: String) -> IssueResponse {
+async fn get_issue(github_token: String) -> IssueResponse {
     let owner = "input-output-hk".to_string();
     let repo = "hydra".to_string();
     let issue_nbr = 1218;
@@ -28,7 +26,7 @@ async fn get_gh_issue(github_token: String) -> IssueResponse {
 }
 
 #[ic_cdk::update]
-async fn get_gh_fixed_by(github_token: String) -> String {
+async fn get_fixed_by(github_token: String) -> String {
     let owner = "input-output-hk".to_string();
     let repo = "hydra".to_string();
     let issue_nbr = 1370;
@@ -41,7 +39,7 @@ async fn get_gh_fixed_by(github_token: String) -> String {
 }
 
 #[ic_cdk::update]
-async fn get_gh_is_merged(github_token: String) -> String {
+async fn get_is_merged(github_token: String) -> String {
     let owner = "input-output-hk".to_string();
     let repo = "hydra".to_string();
     let pr_nbr = 1266;
@@ -54,7 +52,7 @@ async fn get_gh_is_merged(github_token: String) -> String {
 }
 
 #[ic_cdk::update]
-async fn get_gh_merged_details(github_token: String) -> PrDetailsResponse {
+async fn get_merged_details(github_token: String) -> PrDetailsResponse {
     let owner = "input-output-hk".to_string();
     let repo = "hydra".to_string();
     let pr_nbr = 1266;

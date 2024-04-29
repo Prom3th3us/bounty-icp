@@ -1,8 +1,8 @@
 {
   "canisters": {
-    "backend": {
-      "candid": "backend/backend.did",
-      "package": "backend",
+    "github": {
+      "candid": "github/github.did",
+      "package": "github",
       "type": "rust"
     },
     "bounty": {

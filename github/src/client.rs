@@ -3,7 +3,6 @@ use super::api::get_issue::{get_issue_impl, IssueResponse};
 use super::api::get_is_merged::get_is_merged_impl;
 use super::api::get_merged_details::{get_merge_details_impl, PrDetailsResponse};
 
-
 pub struct GithubClient {
     pub owner: String,
     pub repo: String,

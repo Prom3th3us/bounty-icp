@@ -1,0 +1,41 @@
+type Issue = record {
+    state: opt text;
+    login: opt text;
+    id: opt text;
+    milestone_state: opt text;
+    closed_at: opt text;
+    reason: opt text;
+};
+
+type Link = record {
+    issue: opt IssueLink;
+};
+
+type IssueLink = record {
+    href: opt text;
+};
+
+type PrDetailsResponse = record {
+    state: opt text;
+    closed_at: opt text;
+    merge_commit_sha: opt text;
+    merged_at: opt text;
+    links: opt Link;
+    merged: opt bool;
+    merged_by: opt User;
+};
+
+type User = record {
+    login: opt text;
+    id: opt nat64;
+};
+
+type GithubToken = text;
+
+service : {
+    "get_issue": (GithubToken) -> (Issue);
+    "get_fixed_by": (GithubToken) -> (text);
+    "get_is_merged": (GithubToken) -> (text);
+    "get_merged_details": (GithubToken) -> (PrDetailsResponse);   
+}
+
