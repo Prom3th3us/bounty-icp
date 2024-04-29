@@ -1,5 +1,6 @@
 [workspace]
 members = [
     "backend",
+    "bounty",
 ]
 resolver = "2"

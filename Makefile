@@ -13,17 +13,31 @@ node_modules:
 .SILENT: build
 build: node_modules
 	dfx canister create backend
+	dfx canister create bounty
 	dfx build
 
 .PHONY: install
 .SILENT: install
 install: build
 	dfx canister install backend --mode reinstall --yes
+	dfx canister install bounty --mode reinstall --yes
 
 .PHONY: upgrade
 .SILENT: upgrade
 upgrade: build
 	dfx canister install backend --mode=upgrade
+	dfx canister install bounty --mode=upgrade
+
+.PHONY: test
+.SILENT: test
+test-a: install
+	# Call the bounty canister to get the GitHub issue and capture the output
+	@echo "Calling healthcheck on bounty canister..."
+	@TMP_FILE=$$(mktemp); \
+	dfx canister call bounty healthcheck > $$TMP_FILE; \
+	echo "healthcheck response:"; \
+	cat $$TMP_FILE; \
+	rm -f $$TMP_FILE
 
 .PHONY: test
 .SILENT: test

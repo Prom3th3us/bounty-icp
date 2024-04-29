@@ -4,6 +4,11 @@
       "candid": "backend/backend.did",
       "package": "backend",
       "type": "rust"
+    },
+    "bounty": {
+      "candid": "bounty/bounty.did",
+      "package": "bounty",
+      "type": "rust"
     }
   },
   "defaults": {
