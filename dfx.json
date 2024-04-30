@@ -8,7 +8,38 @@
     "bounty": {
       "candid": "bounty/bounty.did",
       "package": "bounty",
-      "type": "rust"
+      "type": "rust",
+      "dependencies": ["icrc1_ledger", "github"]
+    },
+    "identity": {
+      "type": "custom",
+      "candid": "icp/identity/identity.did",
+      "wasm": "icp/identity/identity_dev.wasm.gz",
+      "remote": {
+        "id": {
+          "ic": "rdmx6-jaaaa-aaaaa-aaadq-cai"
+        }
+      }
+    },
+    "icrc1_ledger": {
+      "type": "custom",
+      "candid": "icp/icrc1/ledger/ledger.did",
+      "wasm": "icp/icrc1/ledger/ic-icrc1-ledger.wasm.gz",
+      "remote": {
+        "id": {
+          "ic": "mxzaz-hqaaa-aaaar-qaada-cai"
+        }
+      }
+    },
+    "icrc1_index": {
+      "type": "custom",
+      "candid": "icp/icrc1/index/index.did",
+      "wasm": "icp/icrc1/index/ic-icrc1-index.wasm.gz",
+      "remote": {
+        "id": {
+          "ic": "n5wcd-faaaa-aaaar-qaaea-cai"
+        }
+      }
     }
   },
   "defaults": {

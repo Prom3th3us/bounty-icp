@@ -1,6 +1,6 @@
 [workspace]
 members = [
     "github",
-    "bounty",
+    "bounty"
 ]
 resolver = "2"
