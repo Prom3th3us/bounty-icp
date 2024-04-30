@@ -22,7 +22,7 @@ build: node_modules
 .PHONY: install
 .SILENT: install
 install: build
-	dfx canister install identity --mode reinstall --yes
+	dfx canister install identity --argument '(null)' --mode reinstall --yes
 	$(shell make/install_ledger.sh)
 	$(shell make/install_ledger_index.sh)
 	dfx canister install github --mode reinstall --yes
@@ -31,9 +31,9 @@ install: build
 .PHONY: upgrade
 .SILENT: upgrade
 upgrade: build
-	dfx canister install identity --mode=upgrade
+	dfx canister install identity --argument '(null)' --mode=upgrade
 	dfx canister install icrc1_ledger --mode=upgrade
-	dfx canister install icrc1_index --mode=upgrade
+	dfx canister install icrc1_index --argument '(null)' --mode=upgrade
 	dfx canister install github --mode=upgrade
 	dfx canister install bounty --mode=upgrade
 
@@ -41,6 +41,8 @@ upgrade: build
 .SILENT: clean
 clean:
 	rm -fr .dfx
+	rm -fr node_modules
+	rm -fr target
 
 # tests
 .PHONY: test-1
