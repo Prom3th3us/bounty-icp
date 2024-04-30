@@ -12,9 +12,18 @@ node_modules:
 .PHONY: build
 .SILENT: build
 build: node_modules
-	dfx canister create --with-cycles 1_000_000_000_000 identity
-	dfx canister create --with-cycles 1_000_000_000_000 icrc1_ledger
-	dfx canister create --with-cycles 1_000_000_000_000 icrc1_index
+	dfx canister create \
+		--with-cycles 1_000_000_000_000 \
+		--specified-id rdmx6-jaaaa-aaaaa-aaadq-cai \
+		identity
+	dfx canister create \
+		--with-cycles 1_000_000_000_000 \
+		--specified-id mxzaz-hqaaa-aaaar-qaada-cai \
+		icrc1_ledger
+	dfx canister create \
+		--with-cycles 1_000_000_000_000 \
+		--specified-id n5wcd-faaaa-aaaar-qaaea-cai \
+		icrc1_index
 	dfx canister create github
 	dfx canister create bounty
 	dfx build
