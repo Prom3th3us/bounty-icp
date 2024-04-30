@@ -1,7 +1,7 @@
 {
   "canisters": {
     "github": {
-      "candid": "github/github.did",
+      "candid": "provider/github/github.did",
       "package": "github",
       "type": "rust"
     },

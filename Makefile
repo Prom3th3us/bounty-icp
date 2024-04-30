@@ -12,21 +12,21 @@ node_modules:
 .PHONY: build
 .SILENT: build
 build: node_modules
-	dfx canister create --with-cycles 10_000_000_000 identity
-	dfx canister create --with-cycles 10_000_000_000 icrc1_ledger
-	dfx canister create --with-cycles 10_000_000_000 icrc1_index
-	dfx canister create --with-cycles 10_000_000_000 github
-	dfx canister create --with-cycles 10_000_000_000 bounty
+	dfx canister create --with-cycles 1_000_000_000_000 identity
+	dfx canister create --with-cycles 1_000_000_000_000 icrc1_ledger
+	dfx canister create --with-cycles 1_000_000_000_000 icrc1_index
+	dfx canister create github
+	dfx canister create bounty
 	dfx build
 
 .PHONY: install
 .SILENT: install
 install: build
 	dfx canister install identity --mode reinstall --yes
-	dfx canister install icrc1_ledger --mode reinstall --yes
-	dfx canister install icrc1_index --mode reinstall --yes
+	$(shell make/install_ledger.sh)
+	$(shell make/install_ledger_index.sh)
 	dfx canister install github --mode reinstall --yes
-	dfx canister install bounty --mode reinstall --yes
+	$(shell make/install_bounty.sh)
 
 .PHONY: upgrade
 .SILENT: upgrade
