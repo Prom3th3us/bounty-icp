@@ -12,6 +12,7 @@ struct BountyState {
     authority: Principal,
     github_issue_id: i32,
     interested_contributors: Vec<Contributor>,
+    claimed: bool,
 }
 
 // Define thread-local storage for the bounty canister state
@@ -26,6 +27,7 @@ fn init(authority: Principal, github_issue_id: i32) -> () {
             authority,
             github_issue_id,
             interested_contributors: Vec::new(),
+            claimed: false,
         });
     });
 }
@@ -34,12 +36,17 @@ fn init(authority: Principal, github_issue_id: i32) -> () {
 mod test_init {
     use super::*;
     #[test]
+
     fn test_init() {
         BOUNTY_STATE.with(|state| {
             let bounty_canister = state.borrow();
             assert!(bounty_canister.is_none());
         });
-        let authority = Principal::from_text("ic:authority_canister_principal").unwrap();
+
+        let authority =
+            Principal::from_text("t2y5w-qp34w-qixaj-s67wp-syrei-5yqse-xbed6-z5nsd-fszmf-izgt2-lqe")
+                .unwrap();
+
         init(authority, 123);
         BOUNTY_STATE.with(|state| {
             let bounty_canister = state.borrow();
@@ -63,7 +70,9 @@ mod test_accept {
     use super::*;
     #[test]
     fn test_accept() {
-        let authority = Principal::from_text("ic:authority_canister_principal").unwrap();
+        let authority =
+            Principal::from_text("t2y5w-qp34w-qixaj-s67wp-syrei-5yqse-xbed6-z5nsd-fszmf-izgt2-lqe")
+                .unwrap();
         init(authority, 123);
         BOUNTY_STATE.with(|state| {
             let bounty_canister = state.borrow();
@@ -74,9 +83,10 @@ mod test_accept {
             }
         });
         let contributor =
-            Principal::from_text("ic:contributor_canister_principal").unwrap();
+            Principal::from_text("t2y5w-qp34w-qixaj-s67wp-syrei-5yqse-xbed6-z5nsd-fszmf-izgt2-lqe")
+                .unwrap();
         accept(Contributor {
-            address : contributor,
+            address: contributor,
             crypto_address: "contributor_address".to_string(),
         });
         BOUNTY_STATE.with(|state| {
