@@ -1,4 +1,4 @@
-use candid::{Nat, Principal};
+use candid::Principal;
 
 mod api {
     pub mod state;
@@ -29,7 +29,7 @@ async fn deposit() -> DepositReceipt {
 }
 
 #[ic_cdk::update]
-async fn deposit_direct(amount: Nat) -> DepositReceipt {
+async fn deposit_direct(amount: u64) -> DepositReceipt {
     return deposit_direct_impl(amount).await;
 }
 

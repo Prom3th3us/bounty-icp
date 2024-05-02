@@ -101,10 +101,20 @@ test-4: install
 .PHONY: test-a
 .SILENT: test-a
 test-a: install
-	# Call the bounty canister to get the GitHub issue and capture the output
+	# Call the bounty canister for healthcheck and capture the output
 	@echo "Calling healthcheck on bounty canister..."
 	@TMP_FILE=$$(mktemp); \
 	dfx canister call bounty healthcheck > $$TMP_FILE; \
 	echo "healthcheck response:"; \
 	cat $$TMP_FILE; \
 	rm -f $$TMP_FILE
+
+.PHONY: test-a
+.SILENT: test-a
+test-deposit: install
+	$(shell make/test/deposit.sh)
+
+.PHONY: test-a
+.SILENT: test-a
+test-deposit-direct: install
+	$(shell make/test/deposit_direct.sh)

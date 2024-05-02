@@ -9,12 +9,13 @@ type DepositReceipt =  variant {
 };
 
 type DepositErr = variant {
-  TransferFailure;
+  TransferFailure : record { reason : text };
 };
 
 service : (principal, int32) -> {
     "healthcheck": () -> (text);
     "accept": (Contributor) -> ();
     "deposit": () -> (DepositReceipt);
-    "deposit_direct": (amount: nat) -> (DepositReceipt);
+    "deposit_direct": (amount: nat64) -> (DepositReceipt);
 }
+
