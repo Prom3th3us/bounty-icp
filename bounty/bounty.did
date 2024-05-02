@@ -3,7 +3,18 @@ type Contributor = record {
     crypto_address: text;
 };
 
+type DepositReceipt = 
+ variant {
+   Err: DepositErr;
+   Ok: nat;
+ };
+type DepositErr = 
+ variant {
+   TransferFailure;
+ };
+
 service : (principal, int32) -> {
     "healthcheck": () -> (text);
     "accept": (Contributor) -> ();
+    "deposit": () -> (DepositReceipt);
 }
