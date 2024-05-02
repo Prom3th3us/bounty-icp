@@ -9,7 +9,7 @@ mod api {
 }
 
 use api::accept::accept_impl;
-use api::deposit::{deposit_direct_impl, deposit_impl, DepositReceipt};
+use api::deposit::{deposit_impl, DepositReceipt};
 use api::init::init_impl;
 use api::state::Contributor;
 
@@ -26,11 +26,6 @@ fn accept(contributor: Contributor) -> () {
 #[ic_cdk::update]
 async fn deposit() -> DepositReceipt {
     return deposit_impl().await;
-}
-
-#[ic_cdk::update]
-async fn deposit_direct(amount: u64) -> DepositReceipt {
-    return deposit_direct_impl(amount).await;
 }
 
 #[ic_cdk::update]

@@ -8,43 +8,6 @@ type BlockIndex = Nat;
 pub type Tokens = Nat;
 
 #[derive(Debug, Serialize, Deserialize, CandidType, PartialEq)]
-pub enum TransferError {
-    BadFee { expected_fee: Tokens },
-    BadBurn { min_burn_amount: Tokens },
-    InsufficientFunds { balance: Tokens },
-    TooOld,
-    CreatedInFuture { ledger_time: Timestamp },
-    TemporarilyUnavailable,
-    Duplicate { duplicate_of: BlockIndex },
-    GenericError { error_code: Nat, message: String },
-}
-
-impl TransferError {
-    pub fn to_string(&self) -> String {
-        match self {
-            TransferError::BadFee { expected_fee } => format!("Bad fee: {}", expected_fee),
-            TransferError::BadBurn { min_burn_amount } => format!("Bad burn: {}", min_burn_amount),
-            TransferError::InsufficientFunds { balance } => {
-                format!("Insufficient funds: {}", balance)
-            }
-            TransferError::TooOld => String::from("Transaction too old"),
-            TransferError::CreatedInFuture { ledger_time } => format!(
-                "Created in the future: {}",
-                ledger_time.timestamp_nanos.to_string()
-            ),
-            TransferError::TemporarilyUnavailable => String::from("Ledger temporarily unavailable"),
-            TransferError::Duplicate { duplicate_of } => format!("Duplicate of: {}", duplicate_of),
-            TransferError::GenericError {
-                error_code,
-                message,
-            } => format!("Generic error code {}: {}", error_code, message),
-        }
-    }
-}
-
-pub type TransferResult = Result<BlockIndex, TransferError>;
-
-#[derive(Debug, Serialize, Deserialize, CandidType, PartialEq)]
 pub enum TransferFromError {
     BadFee { expected_fee: Tokens },
     BadBurn { min_burn_amount: Tokens },
@@ -98,16 +61,6 @@ pub struct Account {
 }
 
 #[derive(Debug, Serialize, Deserialize, CandidType)]
-pub struct TransferArg {
-    pub from_subaccount: Option<Subaccount>,
-    pub to: Account,
-    pub amount: Tokens,
-    pub fee: Option<Tokens>,
-    pub memo: Option<Memo>,
-    pub created_at_time: Option<Timestamp>,
-}
-
-#[derive(Debug, Serialize, Deserialize, CandidType)]
 pub struct TransferFromArgs {
     pub spender_subaccount: Option<Subaccount>,
     pub from: Account,
@@ -139,13 +92,6 @@ pub struct ICRC1 {
 impl ICRC1 {
     pub fn new(principal: Principal) -> Self {
         ICRC1 { principal }
-    }
-
-    pub async fn transfer(&self, args: TransferArg) -> TransferResult {
-        let call_result: Result<(TransferResult,), _> =
-            call(self.principal, "icrc1_transfer", (args,)).await;
-
-        return call_result.unwrap().0;
     }
 
     pub async fn transfer_from(&self, args: TransferFromArgs) -> TransferFromResult {

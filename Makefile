@@ -109,12 +109,7 @@ test-a: install
 	cat $$TMP_FILE; \
 	rm -f $$TMP_FILE
 
-.PHONY: test-a
-.SILENT: test-a
+.PHONY: test-deposit
+.SILENT: test-deposit
 test-deposit: install
 	$(shell make/test/deposit.sh)
-
-.PHONY: test-a
-.SILENT: test-a
-test-deposit-direct: install
-	$(shell make/test/deposit_direct.sh)

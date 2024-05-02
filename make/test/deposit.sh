@@ -5,7 +5,7 @@ set -e
 CALLER=$(dfx identity get-principal)
 BOUNTY="bd3sg-teaaa-aaaaa-qaaba-cai"
 
-# Call the bounty canister to deposit direct from caller and capture the output
+# Call the bounty canister to deposit from caller and capture the output
 echo "Calling deposit on bounty canister..."
 
 # check initial balances

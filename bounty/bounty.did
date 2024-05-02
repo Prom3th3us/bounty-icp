@@ -16,6 +16,5 @@ service : (principal, int32) -> {
     "healthcheck": () -> (text);
     "accept": (Contributor) -> ();
     "deposit": () -> (DepositReceipt);
-    "deposit_direct": (amount: nat64) -> (DepositReceipt);
 }
 
