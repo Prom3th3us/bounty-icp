@@ -48,8 +48,11 @@ pub async fn get_fixed_by_impl(owner: String, repo: String, issue_nbr: i32) -> S
                 }
                 set
             });
-            
-            let result = fixed_by_lines.into_iter().collect::<Vec<String>>().join(", ");
+
+            let result = fixed_by_lines
+                .into_iter()
+                .collect::<Vec<String>>()
+                .join(", ");
 
             if let Some(pull_request) = extract_pull_request(&result) {
                 return pull_request;

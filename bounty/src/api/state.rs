@@ -1,4 +1,3 @@
-
 use candid::{CandidType, Principal};
 use serde::{Deserialize, Serialize};
 
@@ -7,7 +6,7 @@ pub struct BountyState {
     pub authority: Principal,
     pub github_issue_id: i32,
     pub interested_contributors: Vec<Contributor>,
-    pub claimed: bool
+    pub claimed: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, CandidType)]

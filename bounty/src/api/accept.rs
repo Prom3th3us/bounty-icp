@@ -12,8 +12,8 @@ pub fn accept_impl(contributor: Contributor) -> () {
 #[cfg(test)]
 mod test_accept {
     use super::*;
-    use candid::Principal;
     use crate::api::init::init_impl;
+    use candid::Principal;
 
     #[test]
     fn test_accept() {

@@ -15,7 +15,7 @@ pub async fn get_is_merged_impl(owner: String, repo: String, pr_nbr: i32) -> Str
         pr_nbr
     );
 
-    // Create the request argument 
+    // Create the request argument
     let request = CanisterHttpRequestArgument {
         url: url.to_string(),
         method: HttpMethod::GET,
@@ -41,5 +41,3 @@ pub async fn get_is_merged_impl(owner: String, repo: String, pr_nbr: i32) -> Str
         }
     }
 }
-
-

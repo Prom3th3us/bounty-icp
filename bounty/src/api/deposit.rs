@@ -1,18 +1,13 @@
+use super::*;
+use std::convert::From;
+use serde::{Deserialize, Serialize};
+use candid::{CandidType, Principal};
 use ic_cdk::api::{caller, id};
 use ic_ledger_types::Memo;
-
-use super::*;
-
 use icrc1::{
     Account, AllowanceArgs, Tokens, TransferArg, TransferFromArgs, ICRC1,
     MAINNET_ICRC1_LEDGER_CANISTER_ID,
 };
-
-use candid::{CandidType, Principal};
-
-use std::convert::From;
-
-use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, CandidType, PartialEq)]
 pub enum DepositErr {
@@ -45,13 +40,13 @@ async fn deposit_icrc1(
             subaccount: None,
         },
         spender: Account {
-            owner: id(),
+            owner: bounty_canister_id,
             subaccount: None,
         },
     };
     let allowance = icrc1_token.allowance(allowance_args).await;
 
-    let available = allowance.allowance - icrc1_token_fee.clone();
+    let available = allowance.allowance.clone() - icrc1_token_fee.clone();
 
     let transfer_from_args = TransferFromArgs {
         // TODO check or FIXME
@@ -75,11 +70,8 @@ async fn deposit_icrc1(
         .transfer_from(transfer_from_args)
         .await
         .map(|_| available)
-        .map_err(|error| {
-            print!("PEPE");
-            DepositErr::TransferFailure {
-                reason: error.to_string(),
-            }
+        .map_err(|error| DepositErr::TransferFailure {
+            reason: error.to_string(),
         });
 }
 
@@ -102,7 +94,7 @@ async fn deposit_direct_icrc1(
 
     let bounty_canister_id = id();
 
-    let available = amount - icrc1_token_fee.clone();
+    let available = amount.clone() - icrc1_token_fee.clone();
 
     let transfer_args = TransferArg {
         // TODO check or FIXME

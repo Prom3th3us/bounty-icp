@@ -119,7 +119,7 @@ fn transform_response(raw_response: HttpResponse) -> IssueResponse {
                 id,
                 milestone_state,
                 closed_at,
-                reason
+                reason,
             })
         })
         .unwrap_or_else(|| panic!("Failed to extract fields from parsed response"));

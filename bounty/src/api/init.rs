@@ -1,5 +1,5 @@
-use candid::Principal;
 use super::state::{BountyState, BOUNTY_STATE};
+use candid::Principal;
 
 pub fn init_impl(authority: Principal, github_issue_id: i32) -> () {
     BOUNTY_STATE.with(|state| {
@@ -7,7 +7,7 @@ pub fn init_impl(authority: Principal, github_issue_id: i32) -> () {
             authority,
             github_issue_id,
             interested_contributors: Vec::new(),
-            claimed: false
+            claimed: false,
         });
     });
 }

@@ -1,17 +1,17 @@
 use candid::Principal;
 
 mod api {
-    pub mod state;
-    pub mod init;
     pub mod accept;
     pub mod deposit;
     pub mod icrc1;
+    pub mod init;
+    pub mod state;
 }
 
-use api::state::Contributor;
-use api::init::init_impl;
 use api::accept::accept_impl;
-use api::deposit::{deposit_impl, deposit_direct_impl, DepositReceipt};
+use api::deposit::{deposit_direct_impl, deposit_impl, DepositReceipt};
+use api::init::init_impl;
+use api::state::Contributor;
 
 #[ic_cdk::init]
 fn init(authority: Principal, github_issue_id: i32) -> () {
