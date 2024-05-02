@@ -1,3 +1,5 @@
+SHELL := /bin/bash
+
 # Load environment variables from .env file
 include .env
 

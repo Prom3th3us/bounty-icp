@@ -2,24 +2,32 @@
 
 set -e
 
+balance_of() {
+    dfx canister call icrc1_index icrc1_balance_of "(record{owner = principal \"$1\"; })"
+}
+
+approve_allowance() {
+    dfx canister call icrc1_ledger icrc2_approve "(record { amount = $1; spender = record{owner = principal \"$2\";} })"
+}
+
+deposit() {
+    dfx canister call bounty deposit "()"
+}
+
 CALLER=$(dfx identity get-principal)
-BOUNTY="bd3sg-teaaa-aaaaa-qaaba-cai"
+BOUNTY=$(dfx canister id bounty)
 
 # Call the bounty canister to deposit from caller and capture the output
 echo "Calling deposit on bounty canister..."
 
 # check initial balances
-echo "Caller initial balance:"
-dfx canister call icrc1_index icrc1_balance_of "(record{owner = principal \"${CALLER}\"; })"
-echo "Bounty initial balance:"
-dfx canister call icrc1_index icrc1_balance_of "(record{owner = principal \"${BOUNTY}\"; })"
+echo "Caller initial balance: $(balance_of "$CALLER")"
+echo "Bounty initial balance: $(balance_of "$BOUNTY")"
 
 # deposit
-dfx canister call icrc1_ledger icrc2_approve "(record { amount = 100_000; spender = record{owner = principal \"${BOUNTY}\";} })"
-dfx canister call bounty deposit '()'
+echo "Bounty allowance: $(approve_allowance 100_000 "$BOUNTY")"
+echo "Bounty deposit: $(deposit)"
 
 # check final balances
-echo "Caller final balance:"
-dfx canister call icrc1_index icrc1_balance_of "(record{owner = principal \"${CALLER}\"; })"
-echo "Bounty final balance:"
-dfx canister call icrc1_index icrc1_balance_of "(record{owner = principal \"${BOUNTY}\"; })"
+echo "Caller final balance: $(balance_of "$CALLER")"
+echo "Bounty final balance: $(balance_of "$BOUNTY")"
