@@ -1,4 +1,4 @@
-use candid::Principal;
+use candid::{Nat, Principal};
 
 mod api {
     pub mod state;
@@ -11,7 +11,7 @@ mod api {
 use api::state::Contributor;
 use api::init::init_impl;
 use api::accept::accept_impl;
-use api::deposit::{deposit_impl, DepositReceipt};
+use api::deposit::{deposit_impl, deposit_direct_impl, DepositReceipt};
 
 #[ic_cdk::init]
 fn init(authority: Principal, github_issue_id: i32) -> () {
@@ -26,6 +26,11 @@ fn accept(contributor: Contributor) -> () {
 #[ic_cdk::update]
 async fn deposit() -> DepositReceipt {
     return deposit_impl().await;
+}
+
+#[ic_cdk::update]
+async fn deposit_direct(amount: Nat) -> DepositReceipt {
+    return deposit_direct_impl(amount).await;
 }
 
 #[ic_cdk::update]
