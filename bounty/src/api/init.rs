@@ -10,6 +10,7 @@ pub fn init_impl(authority: Principal, github_issue_id: i32) -> () {
             github_issue_id,
             interested_contributors: HashMap::new(),
             claimed: false,
+            winner: None
         });
     });
 }

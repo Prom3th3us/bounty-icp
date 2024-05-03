@@ -1,11 +1,20 @@
 use super::state::{Contributor, BOUNTY_STATE};
 
 pub fn accept_impl(contributor: Contributor, github_pr_id: i32) -> () {
-    // FIXME check contributor is the owner of the PR
+    // FIXME: check contributor is the owner of the PR.
     BOUNTY_STATE.with(|state| {
         if let Some(ref mut bounty_canister) = *state.borrow_mut() {
-            // Add the contributor to the interested contributors list
-            bounty_canister.interested_contributors.insert(github_pr_id, contributor);
+            if bounty_canister.interested_contributors.contains_key(&github_pr_id) {
+                // do not update if the key is present.
+                // > The contributor is suppose to be the PR owner and the principal who called accept,
+                // > thus its fixed.
+                // FIXME: change response type to include a propper domain error.
+                // The response should be a Result type (Either).
+                panic!("Can't accept twice");
+            } else {
+                // Add the contributor to the interested contributors list.
+                bounty_canister.interested_contributors.insert(github_pr_id, contributor);
+            }
         }
     });
 }

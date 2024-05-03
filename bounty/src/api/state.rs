@@ -12,6 +12,7 @@ pub struct BountyState {
     pub github_issue_id: IssueId,
     pub interested_contributors: HashMap<PullRequestId, Contributor>,
     pub claimed: bool,
+    pub winner: Option<PullRequestId>,
 }
 
 #[derive(Debug, Serialize, Deserialize, CandidType)]

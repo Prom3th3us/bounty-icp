@@ -6,6 +6,7 @@ mod api {
     pub mod icrc1;
     pub mod init;
     pub mod state;
+    pub mod claim;
 }
 
 use api::accept::accept_impl;
