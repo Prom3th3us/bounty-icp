@@ -1,4 +1,4 @@
-SHELL := /bin/bash
+SHELL = /bin/bash
 
 # Load environment variables from .env file
 include .env
@@ -34,10 +34,10 @@ build: node_modules
 .SILENT: install
 install: build
 	dfx canister install identity --argument '(null)' --mode reinstall --yes
-	$(shell make/install_ledger.sh)
-	$(shell make/install_ledger_index.sh)
+	./make/install_ledger.sh
+	./make/install_ledger_index.sh
 	dfx canister install github --mode reinstall --yes
-	$(shell make/install_bounty.sh)
+	./make/install_bounty.sh
 
 .PHONY: upgrade
 .SILENT: upgrade
@@ -114,4 +114,4 @@ test-a: install
 .PHONY: test-deposit
 .SILENT: test-deposit
 test-deposit: install
-	$(shell make/test/deposit.sh)
+	./make/test/deposit.sh
