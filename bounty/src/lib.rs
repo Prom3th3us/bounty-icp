@@ -19,8 +19,8 @@ fn init(authority: Principal, github_issue_id: i32) -> () {
 }
 
 #[ic_cdk::update]
-fn accept(contributor: Contributor) -> () {
-    accept_impl(contributor);
+fn accept(contributor: Contributor, github_pr_id: i32) -> () {
+    accept_impl(contributor, github_pr_id);
 }
 
 #[ic_cdk::update]

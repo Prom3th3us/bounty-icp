@@ -1,10 +1,10 @@
 use super::state::{Contributor, BOUNTY_STATE};
 
-pub fn accept_impl(contributor: Contributor) -> () {
+pub fn accept_impl(contributor: Contributor, github_pr_id: i32) -> () {
     BOUNTY_STATE.with(|state| {
         if let Some(ref mut bounty_canister) = *state.borrow_mut() {
             // Add the contributor to the interested contributors list
-            bounty_canister.interested_contributors.push(contributor);
+            bounty_canister.interested_contributors.insert(github_pr_id, contributor);
         }
     });
 }
@@ -32,10 +32,14 @@ mod test_accept {
         let contributor =
             Principal::from_text("t2y5w-qp34w-qixaj-s67wp-syrei-5yqse-xbed6-z5nsd-fszmf-izgt2-lqe")
                 .unwrap();
-        accept_impl(Contributor {
-            address: contributor,
-            crypto_address: "contributor_address".to_string(),
-        });
+        let github_pr_id = 88;
+        accept_impl(
+            Contributor {
+                address: contributor,
+                crypto_address: "contributor_address".to_string(),
+            },
+            github_pr_id,
+        );
         BOUNTY_STATE.with(|state| {
             let bounty_canister = state.borrow();
             if let Some(ref bounty_canister) = *bounty_canister {

@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use super::state::{BountyState, BOUNTY_STATE};
 use candid::Principal;
 
@@ -6,7 +8,7 @@ pub fn init_impl(authority: Principal, github_issue_id: i32) -> () {
         *state.borrow_mut() = Some(BountyState {
             authority,
             github_issue_id,
-            interested_contributors: Vec::new(),
+            interested_contributors: HashMap::new(),
             claimed: false,
         });
     });

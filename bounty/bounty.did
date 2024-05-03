@@ -12,9 +12,9 @@ type DepositErr = variant {
   TransferFailure : record { reason : text };
 };
 
-service : (principal, int32) -> {
+service : (authority: principal, github_issue_id: int32) -> {
     "healthcheck": () -> (text);
-    "accept": (Contributor) -> ();
+    "accept": (Contributor, github_pr_id: int32) -> ();
     "deposit": () -> (DepositReceipt);
 }
 
