@@ -1,6 +1,7 @@
 use super::state::{Contributor, BOUNTY_STATE};
 
 pub fn accept_impl(contributor: Contributor, github_pr_id: i32) -> () {
+    // FIXME check contributor is the owner of the PR
     BOUNTY_STATE.with(|state| {
         if let Some(ref mut bounty_canister) = *state.borrow_mut() {
             // Add the contributor to the interested contributors list
