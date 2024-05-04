@@ -15,7 +15,7 @@ pub struct BountyState {
     pub winner: Option<PullRequestId>,
 }
 
-#[derive(Debug, Serialize, Deserialize, CandidType)]
+#[derive(Debug, Serialize, Deserialize, CandidType, Clone)]
 pub struct Contributor {
     pub address: Principal,
     pub crypto_address: String,

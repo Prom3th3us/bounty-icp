@@ -1,12 +1,12 @@
 use candid::Principal;
 
-mod api {
+pub mod api {
     pub mod accept;
+    pub mod claim;
     pub mod deposit;
     pub mod icrc1;
     pub mod init;
     pub mod state;
-    pub mod claim;
 }
 
 use api::accept::accept_impl;

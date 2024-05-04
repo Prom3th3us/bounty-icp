@@ -1,16 +1,15 @@
-mod api {
+pub mod api {
     pub mod get_fixed_by;
     pub mod get_is_merged;
     pub mod get_issue;
     pub mod get_merged_details;
 }
-mod client;
-mod utils;
+pub mod client;
+pub mod utils;
 
 use api::get_issue::IssueResponse;
 use api::get_merged_details::PrDetailsResponse;
-
-use client::GithubClient;
+use client::{GithubClient, IGithubClient};
 
 #[ic_cdk::update]
 async fn get_issue(github_token: String) -> IssueResponse {

@@ -1,6 +1,9 @@
 use crate::api::state::BOUNTY_STATE;
 use candid::{CandidType, Principal};
 use serde::{Deserialize, Serialize};
+use super::state::Contributor;
+
+use github::{api::{get_issue::IssueResponse, get_merged_details::PrDetailsResponse}, client::IGithubClient};
 
 #[derive(Debug, Serialize, Deserialize, CandidType)]
 pub enum ClaimError {
@@ -10,39 +13,44 @@ pub enum ClaimError {
 
 // TODO: remove this after finishing draft impl.
 #[cfg(test)]
-pub struct GithubClient {
+pub struct GithubClientMock {
     principal: Principal,
 }
 
 // TODO: remove this after finishing draft impl.
 #[cfg(test)]
-impl GithubClient {
-    pub fn new(principal: Principal) -> Self {
-        GithubClient { principal }
-    }
-
-    pub async fn get_issue(&self, issue_nbr: i32) -> String {
-        todo!()
-    }
-    pub async fn get_fixed_by(&self, issue_nbr: i32) -> String {
-        todo!()
-    }
-    pub async fn get_is_merged(&self, pr_nbr: i32) -> String {
-        todo!()
-    }
-    pub async fn get_merged_details(&self, pr_nbr: i32) -> String {
-        todo!()
-    }
+#[async_trait::async_trait]
+impl IGithubClient for GithubClientMock {
+    async fn get_issue(&self, issue_nbr: i32) -> IssueResponse { todo!() }
+    async fn get_fixed_by(&self, issue_nbr: i32) -> String { todo!() }
+    async fn get_is_merged(&self, pr_nbr: i32) -> String { todo!() }
+    async fn get_merged_details(&self, pr_nbr: i32) -> PrDetailsResponse { todo!() }
 }
 
 // FIXME: remove this annotation after finishing draft impl.
 #[cfg(test)]
 pub async fn claim_impl(
-    github_client: GithubClient,
+    github_client: &dyn IGithubClient,
     github_issue_id: i32,
+    github_pr_id: i32,
     github_token: &str,
 ) -> Option<ClaimError> {
-    todo!()
+    let contributor_opt: Option<Contributor> = BOUNTY_STATE.with(|state| {
+        match state.borrow().as_ref() {
+            Some(bounty_state) => {
+                // Access the interested_contributors HashMap from the BountyState
+                bounty_state.interested_contributors.get(&github_pr_id).cloned()
+            }
+            None => panic!("Bounty canister state not initialized")
+        }
+    });
+    match contributor_opt {
+        None => Some(ClaimError::PRNotAccepted{github_pr_id})
+        , Some(contributor) => {
+            let issue = github_client.get_issue(github_issue_id).await;
+            todo!()
+        }
+    }
 }
 
 #[cfg(test)]
@@ -53,7 +61,7 @@ mod test_claim {
     use candid::Principal;
     use futures::executor::block_on;
 
-    use super::{claim_impl, ClaimError, GithubClient};
+    use super::{claim_impl, ClaimError, GithubClientMock};
 
     fn accept_contributor(principal: &str, crypto_address: &str, github_pr_id: i32) {
         accept_impl(
@@ -76,9 +84,9 @@ mod test_claim {
         accept_contributor("mxzaz-hqaaa-aaaar-qaada-cai", "contributor_address_1", 1);
         accept_contributor("n5wcd-faaaa-aaaar-qaaea-cai", "contributor_address_2", 2);
 
-        let github_client = GithubClient::new(authority);
+        let github_client = GithubClientMock{principal: authority};
 
-        let result = block_on(claim_impl(github_client, 2, "GithubToken"));
+        let result = block_on(claim_impl(&github_client, github_issue_id, 2, "GithubToken"));
 
         match result {
             None => assert!(true),

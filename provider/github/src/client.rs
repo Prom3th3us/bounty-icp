@@ -9,8 +9,17 @@ pub struct GithubClient {
     pub github_token: String,
 }
 
-impl GithubClient {
-    pub async fn get_issue(&self, issue_nbr: i32) -> IssueResponse {
+#[async_trait::async_trait]
+pub trait IGithubClient {
+    async fn get_issue(&self, issue_nbr: i32) -> IssueResponse;
+    async fn get_fixed_by(&self, issue_nbr: i32) -> String;
+    async fn get_is_merged(&self, pr_nbr: i32) -> String;
+    async fn get_merged_details(&self, pr_nbr: i32) -> PrDetailsResponse;
+}
+
+#[async_trait::async_trait]
+impl IGithubClient for GithubClient {
+    async fn get_issue(&self, issue_nbr: i32) -> IssueResponse {
         get_issue_impl(
             self.owner.clone(),
             self.repo.clone(),
@@ -19,13 +28,13 @@ impl GithubClient {
         )
         .await
     }
-    pub async fn get_fixed_by(&self, issue_nbr: i32) -> String {
+    async fn get_fixed_by(&self, issue_nbr: i32) -> String {
         get_fixed_by_impl(self.owner.clone(), self.repo.clone(), issue_nbr).await
     }
-    pub async fn get_is_merged(&self, pr_nbr: i32) -> String {
+    async fn get_is_merged(&self, pr_nbr: i32) -> String {
         get_is_merged_impl(self.owner.clone(), self.repo.clone(), pr_nbr).await
     }
-    pub async fn get_merged_details(&self, pr_nbr: i32) -> PrDetailsResponse {
+    async fn get_merged_details(&self, pr_nbr: i32) -> PrDetailsResponse {
         get_merge_details_impl(
             self.owner.clone(),
             self.repo.clone(),
