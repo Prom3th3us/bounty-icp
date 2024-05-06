@@ -11,12 +11,13 @@ use std::collections::HashSet;
 use regex::Regex;
 
 #[derive(Debug, Serialize, Deserialize, CandidType)]
-pub enum GetFixedByError {
+pub enum FixedByErr {
     IssueNotFound { github_issue_id: String },
+    Rejected { error_message: String },
 }
 
 // curl https://github.com/input-output-hk/hydra/issues/1370
-pub async fn get_fixed_by_impl(owner: String, repo: String, issue_nbr: i32) -> Result<String, GetFixedByError> {
+pub async fn get_fixed_by_impl(owner: String, repo: String, issue_nbr: i32) -> Result<String, FixedByErr> {
     // Setup the URL and its query parameters
     let url = format!(
         "https://{}/{}/{}/issues/{}",
@@ -72,14 +73,15 @@ pub async fn get_fixed_by_impl(owner: String, repo: String, issue_nbr: i32) -> R
                 repo,
                 issue_nbr
             );
-            return Err(GetFixedByError::IssueNotFound{github_issue_id: issue_not_found});
+            return Err(FixedByErr::IssueNotFound{github_issue_id: issue_not_found});
             
         }
         Err((rejection_code, message)) => {
-            panic!(
+            let error_message = format!(
                 "The http_request resulted in an error. RejectionCode: {:?}, Error: {}",
                 rejection_code, message
             );
+            return Err(FixedByErr::Rejected{error_message});
         }
     }
 }

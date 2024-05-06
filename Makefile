@@ -13,7 +13,7 @@ node_modules:
 
 .PHONY: build
 .SILENT: build
-build: node_modules
+build: # node_modules
 	dfx canister create \
 		--with-cycles 1_000_000_000_000 \
 		--specified-id rdmx6-jaaaa-aaaaa-aaadq-cai \
@@ -55,7 +55,7 @@ clean:
 # tests
 .PHONY: test-1
 .SILENT: test-1
-test-1: install
+test-1: # install
 	# Call the backend canister to get the GitHub issue and capture the output
 	@echo "Calling get_issue on backend canister..."
 	@TMP_FILE=$$(mktemp); \
@@ -66,7 +66,7 @@ test-1: install
 
 .PHONY: test-2
 .SILENT: test-2
-test-2: install
+test-2: # install
 	# Call the backend canister to get the GitHub PR that close some issue and capture the output
 	@echo "Calling get_fixed_by on backend canister..."
 	@TMP_FILE=$$(mktemp); \
@@ -77,7 +77,7 @@ test-2: install
 
 .PHONY: test-3
 .SILENT: test-3
-test-3: install
+test-3: # install
 	# Call the backend canister to get the GitHub PR merge status and capture the output
 	@echo "Calling get_is_merged on backend canister..."
 	@TMP_FILE=$$(mktemp); \
@@ -88,7 +88,7 @@ test-3: install
 
 .PHONY: test-4
 .SILENT: test-4
-test-4: install
+test-4: # install
 	# Call the backend canister to get the GitHub closing PR details and capture the output
 	@echo "Calling get_merged_details on backend canister..."
 	@TMP_FILE=$$(mktemp); \
@@ -99,7 +99,7 @@ test-4: install
 
 .PHONY: test-a
 .SILENT: test-a
-test-a: install
+test-a: # install
 	# Call the backend canister for healthcheck and capture the output
 	@echo "Calling healthcheck on backend canister..."
 	@TMP_FILE=$$(mktemp); \
@@ -110,5 +110,5 @@ test-a: install
 
 .PHONY: test-deposit
 .SILENT: test-deposit
-test-deposit: install
+test-deposit: # install
 	./make/test/deposit.sh

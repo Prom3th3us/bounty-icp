@@ -36,12 +36,17 @@ pub struct User {
     pub id: u64,
 }
 
+#[derive(Debug, Serialize, Deserialize, CandidType)]
+pub enum MergeDetailsErr {
+    Rejected { error_message: String },
+}
+
 pub async fn get_merge_details_impl(
     owner: String,
     repo: String,
     pr_nbr: i32,
     github_token: String,
-) -> PrDetailsResponse {
+) -> Result<PrDetailsResponse, MergeDetailsErr> {
     // Setup the URL and its query parameters
     let url = format!(
         "https://{}/repos/{}/{}/pulls/{}",
@@ -77,13 +82,14 @@ pub async fn get_merge_details_impl(
             println!("Transformed response: {:?}", transformed_response);
 
             // Return the transformed response
-            transformed_response
+            Ok(transformed_response)
         }
         Err((rejection_code, message)) => {
-            panic!(
+            let error_message = format!(
                 "The http_request resulted in an error. RejectionCode: {:?}, Error: {}",
                 rejection_code, message
             );
+            Err(MergeDetailsErr::Rejected { error_message })
         }
     }
 }

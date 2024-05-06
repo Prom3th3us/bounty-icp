@@ -8,6 +8,11 @@ use serde::{Deserialize, Serialize};
 
 use super::super::utils::{github_api_host, mk_request_headers};
 
+#[derive(Debug, Serialize, Deserialize, CandidType)]
+pub enum IssueErr {
+    Rejected { error_message: String },
+}
+
 // Define the IssueResponse struct to represent the transformed response
 #[derive(Debug, Serialize, Deserialize, CandidType)]
 pub struct IssueResponse {
@@ -24,7 +29,7 @@ pub async fn get_issue_impl(
     repo: String,
     issue_nbr: i32,
     github_token: String,
-) -> IssueResponse {
+) -> Result<IssueResponse, IssueErr> {
     // Setup the URL and its query parameters
     let url = format!(
         "https://{}/repos/{}/{}/issues/{}",
@@ -60,13 +65,14 @@ pub async fn get_issue_impl(
             println!("Transformed response: {:?}", transformed_response);
 
             // Return the transformed response
-            transformed_response
+            Ok(transformed_response)
         }
         Err((rejection_code, message)) => {
-            panic!(
+            let error_message = format!(
                 "The http_request resulted in an error. RejectionCode: {:?}, Error: {}",
                 rejection_code, message
             );
+            Err(IssueErr::Rejected { error_message })
         }
     }
 }

@@ -15,9 +15,10 @@ pub mod provider {
         pub mod utils;
     }
 }
-use provider::github::api::get_fixed_by::GetFixedByError;
-use provider::github::api::get_issue::IssueResponse;
-use provider::github::api::get_merged_details::PrDetailsResponse;
+use provider::github::api::get_fixed_by::FixedByErr;
+use provider::github::api::get_is_merged::IsMergedErr;
+use provider::github::api::get_issue::{IssueErr, IssueResponse};
+use provider::github::api::get_merged_details::{MergeDetailsErr, PrDetailsResponse};
 use provider::github::client::{GithubClient, IGithubClient};
 
 pub mod bounty {
@@ -38,7 +39,7 @@ use bounty::api::state::Contributor;
 
 // GITHUB SERVICE
 #[ic_cdk::update]
-async fn get_issue(github_token: String) -> IssueResponse {
+async fn get_issue(github_token: String) -> Result<IssueResponse, IssueErr> {
     let owner = "input-output-hk".to_string();
     let repo = "hydra".to_string();
     let issue_nbr = 1218;
@@ -51,7 +52,7 @@ async fn get_issue(github_token: String) -> IssueResponse {
 }
 
 #[ic_cdk::update]
-async fn get_fixed_by(github_token: String) -> Result<String, GetFixedByError> {
+async fn get_fixed_by(github_token: String) -> Result<String, FixedByErr> {
     let owner = "input-output-hk".to_string();
     let repo = "hydra".to_string();
     let issue_nbr = 1370;
@@ -64,7 +65,7 @@ async fn get_fixed_by(github_token: String) -> Result<String, GetFixedByError> {
 }
 
 #[ic_cdk::update]
-async fn get_is_merged(github_token: String) -> String {
+async fn get_is_merged(github_token: String) -> Result<String, IsMergedErr> {
     let owner = "input-output-hk".to_string();
     let repo = "hydra".to_string();
     let pr_nbr = 1266;
@@ -77,7 +78,7 @@ async fn get_is_merged(github_token: String) -> String {
 }
 
 #[ic_cdk::update]
-async fn get_merged_details(github_token: String) -> PrDetailsResponse {
+async fn get_merged_details(github_token: String) -> Result<PrDetailsResponse, MergeDetailsErr> {
     let owner = "input-output-hk".to_string();
     let repo = "hydra".to_string();
     let pr_nbr = 1266;

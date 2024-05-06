@@ -1,5 +1,8 @@
 use crate::bounty::api::state::{Contributor, IssueId, PullRequestId, BOUNTY_STATE};
-use crate::provider::github::api::get_fixed_by::GetFixedByError;
+use crate::provider::github::api::get_fixed_by::FixedByErr;
+use crate::provider::github::api::get_is_merged::IsMergedErr;
+use crate::provider::github::api::get_issue::IssueErr;
+use crate::provider::github::api::get_merged_details::MergeDetailsErr;
 use candid::{CandidType, Principal};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -26,16 +29,16 @@ pub struct GithubClientMock {
 #[cfg(test)]
 #[async_trait::async_trait]
 impl IGithubClient for GithubClientMock {
-    async fn get_issue(&self, issue_nbr: i32) -> IssueResponse {
+    async fn get_issue(&self, issue_nbr: i32) -> Result<IssueResponse, IssueErr> {
         todo!()
     }
-    async fn get_fixed_by(&self, issue_nbr: i32) -> Result<String, GetFixedByError> {
+    async fn get_fixed_by(&self, issue_nbr: i32) -> Result<String, FixedByErr> {
         todo!()
     }
-    async fn get_is_merged(&self, pr_nbr: i32) -> String {
+    async fn get_is_merged(&self, pr_nbr: i32) -> Result<String, IsMergedErr> {
         todo!()
     }
-    async fn get_merged_details(&self, pr_nbr: i32) -> PrDetailsResponse {
+    async fn get_merged_details(&self, pr_nbr: i32) -> Result<PrDetailsResponse, MergeDetailsErr> {
         todo!()
     }
 }
@@ -47,7 +50,7 @@ pub async fn claim_impl(
     github_issue_id: IssueId,
     github_pr_id: PullRequestId,
 ) -> Option<ClaimError> {
-    use crate::bounty::api::state::Issue;
+    use crate::{bounty::api::state::Issue, provider::github::api::get_merged_details::MergeDetailsErr};
 
     let issue_opt: Option<Issue> = BOUNTY_STATE.with(|state| {
         match state.borrow().as_ref() {
@@ -70,10 +73,12 @@ pub async fn claim_impl(
                 github_pr_id: github_pr_id.clone(),
             }),
             Some(pull_request) => {
-                let pr_response: PrDetailsResponse =
-                    github_client.get_merged_details(extract_pull_number(&github_pr_id).unwrap()).await;
-                let issue_response: IssueResponse =
-                    github_client.get_issue(extract_issue_number(&github_issue_id).unwrap()).await;
+                let pr_response: Result<PrDetailsResponse, MergeDetailsErr> = github_client
+                    .get_merged_details(extract_pull_number(&github_pr_id).unwrap())
+                    .await;
+                let issue_response: Result<IssueResponse, IssueErr> = github_client
+                    .get_issue(extract_issue_number(&github_issue_id).unwrap())
+                    .await;
 
                 todo!()
             }

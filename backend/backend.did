@@ -19,11 +19,39 @@ type IssueLink = record {
 
 type FixedByErr = variant {
   IssueNotFound : record { github_issue_id : text };
+  Rejected : record { error_message : text };
 };
 
 type FixedByReceipt =  variant {
   Err: FixedByErr;
   Ok: text;
+};
+
+type IsMergedErr = variant {
+  Rejected : record { error_message : text };
+};
+
+type IsMergedReceipt =  variant {
+  Err: IsMergedErr;
+  Ok: text;
+};
+
+type IssueErr = variant {
+  Rejected : record { error_message : text };
+};
+
+type IssueReceipt =  variant {
+  Err: IssueErr;
+  Ok: Issue;
+};
+
+type MergeDetailsErr = variant {
+  Rejected : record { error_message : text };
+};
+
+type MergeDetailsReceipt =  variant {
+  Err: MergeDetailsErr;
+  Ok: PrDetailsResponse;
 };
 
 type PrDetailsResponse = record {
@@ -61,10 +89,10 @@ type DepositErr = variant {
 
 service : (authority: principal) -> {
     // GitHub Service
-    "get_issue": (GithubToken) -> (Issue);
+    "get_issue": (GithubToken) -> (IssueReceipt);
     "get_fixed_by": (GithubToken) -> (FixedByReceipt);
-    "get_is_merged": (GithubToken) -> (text);
-    "get_merged_details": (GithubToken) -> (PrDetailsResponse);
+    "get_is_merged": (GithubToken) -> (IsMergedReceipt);
+    "get_merged_details": (GithubToken) -> (MergeDetailsReceipt);
     // Bounty Service
     "healthcheck": () -> (text);
     "accept": (Contributor, github_issue_id: text, github_pr_id: text) -> ();

@@ -1,5 +1,5 @@
 {
-  "name": "send_http_get_frontend",
+  "name": "frontend",
   "version": "0.2.0",
   "description": "Internet Computer starter application",
   "keywords": [
