@@ -16,7 +16,7 @@ pub enum DepositErr {
 pub type DepositReceipt = Result<Tokens, DepositErr>;
 
 pub async fn deposit_impl() -> DepositReceipt {
-    // FIXME check caller equals the owner who initialized the bounty.
+    // FIXME: check caller equals the owner who initialized the bounty.
     let caller = caller();
     let icrc1_token_canister_id = Principal::from_text(MAINNET_ICRC1_LEDGER_CANISTER_ID)
         .expect("Wrong MAINNET_ICRC1_LEDGER_CANISTER_ID");
@@ -59,7 +59,7 @@ async fn deposit_icrc1(
         },
         amount: available.clone(),
         fee: Some(icrc1_token_fee),
-        // TODO enhance memo text
+        // TODO: enhance memo text
         memo: Some(Memo(0)),
         created_at_time: None,
     };

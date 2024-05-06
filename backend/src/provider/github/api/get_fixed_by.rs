@@ -90,6 +90,7 @@ fn remove_github_prefix(url: &str) -> String {
     url.replace("https://github.com/", "")
 }
 
+// TODO: use extract_regex
 fn extract_pull_request(html: &str) -> Option<String> {
     // Define a regular expression pattern to match the href attribute
     let re = Regex::new(r#"<a\s+[^>]*?href="(.*?)"[^>]*?>"#).unwrap();

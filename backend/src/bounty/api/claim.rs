@@ -75,6 +75,8 @@ pub async fn claim_impl(
                 github_pr_id: github_pr_id.clone(),
             }),
             Some(pull_request) => {
+                // TODO: unify GitHub errors
+                // FIXME: remove unwraps
                 let pr_response: Result<PrDetailsResponse, MergeDetailsErr> = github_client
                     .get_merged_details(extract_pull_number(&github_pr_id).unwrap())
                     .await;
