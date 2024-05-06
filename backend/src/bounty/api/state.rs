@@ -3,8 +3,8 @@ use std::collections::HashMap;
 use candid::{CandidType, Principal};
 use serde::{Deserialize, Serialize};
 
-pub type IssueId = i32;
-pub type PullRequestId = i32;
+pub type IssueId = String;
+pub type PullRequestId = String;
 
 #[derive(Debug, Serialize, Deserialize, CandidType, Clone, Builder)]
 pub struct Contributor {

@@ -1,6 +1,6 @@
 use super::state::{Contributor, PullRequest, BOUNTY_STATE};
 
-pub fn accept_impl(contributor: Contributor, github_issue_id: i32, github_pr_id: i32) -> () {
+pub fn accept_impl(contributor: Contributor, github_issue_id: String, github_pr_id: String) -> () {
     BOUNTY_STATE.with(|state| {
         if let Some(ref mut bounty_canister) = *state.borrow_mut() {
             let mut issue_exists = false;
@@ -10,10 +10,10 @@ pub fn accept_impl(contributor: Contributor, github_issue_id: i32, github_pr_id:
                 issue_exists = true;
                 if !issue.bounty.accepted_prs.contains_key(&github_pr_id) {
                     let pr = PullRequest {
-                        id: github_pr_id,
+                        id: github_pr_id.clone(),
                         contributor,
                     };
-                    issue.bounty.accepted_prs.insert(github_pr_id, pr);
+                    issue.bounty.accepted_prs.insert(github_pr_id.clone(), pr);
                     pr_exists = true;
                 }
             }
@@ -45,7 +45,7 @@ mod test_accept {
             Principal::from_text("t2y5w-qp34w-qixaj-s67wp-syrei-5yqse-xbed6-z5nsd-fszmf-izgt2-lqe")
                 .unwrap();
         init_impl(authority);
-        let github_issue_id = 123;
+        let github_issue_id = "input-output-hk/hydra/issues/1370".to_string();
         BOUNTY_STATE.with(|state| {
             let bounty_canister = state.borrow();
             if let Some(ref bounty_canister) = *bounty_canister {
@@ -67,14 +67,14 @@ mod test_accept {
         let contributor =
             Principal::from_text("t2y5w-qp34w-qixaj-s67wp-syrei-5yqse-xbed6-z5nsd-fszmf-izgt2-lqe")
                 .unwrap();
-        let github_pr_id = 88;
+        let github_pr_id = "input-output-hk/hydra/pull/1266".to_string();
         accept_impl(
             Contributor {
                 address: contributor,
                 crypto_address: "contributor_address".to_string(),
             },
-            github_issue_id,
-            github_pr_id,
+            github_issue_id.clone(),
+            github_pr_id.clone(),
         );
         BOUNTY_STATE.with(|state| {
             let bounty_canister = state.borrow();

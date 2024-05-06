@@ -96,7 +96,7 @@ fn init(authority: Principal) -> () {
 }
 
 #[ic_cdk::update]
-fn accept(contributor: Contributor, github_issue_id: i32, github_pr_id: i32) -> () {
+fn accept(contributor: Contributor, github_issue_id: String, github_pr_id: String) -> () {
     accept_impl(contributor, github_issue_id, github_pr_id);
 }
 

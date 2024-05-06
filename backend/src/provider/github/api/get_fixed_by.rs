@@ -12,7 +12,7 @@ use regex::Regex;
 
 #[derive(Debug, Serialize, Deserialize, CandidType)]
 pub enum GetFixedByError {
-    IssueNotFound { issue_nbr: i32 },
+    IssueNotFound { github_issue_id: String },
 }
 
 // curl https://github.com/input-output-hk/hydra/issues/1370
@@ -64,7 +64,15 @@ pub async fn get_fixed_by_impl(owner: String, repo: String, issue_nbr: i32) -> R
             if let Some(pull_request) = extract_pull_request(&result) {
                 return Ok(remove_github_prefix(&pull_request));
             }
-            return Err(GetFixedByError::IssueNotFound{issue_nbr});
+
+            let issue_not_found = format!(
+                "https://{}/{}/{}/issue/{}",
+                github_host(),
+                owner,
+                repo,
+                issue_nbr
+            );
+            return Err(GetFixedByError::IssueNotFound{github_issue_id: issue_not_found});
             
         }
         Err((rejection_code, message)) => {

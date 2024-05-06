@@ -18,7 +18,7 @@ type IssueLink = record {
 };
 
 type FixedByErr = variant {
-  IssueNotFound : record { issue_nbr : int32 };
+  IssueNotFound : record { github_issue_id : text };
 };
 
 type FixedByReceipt =  variant {
@@ -67,7 +67,7 @@ service : (authority: principal) -> {
     "get_merged_details": (GithubToken) -> (PrDetailsResponse);
     // Bounty Service
     "healthcheck": () -> (text);
-    "accept": (Contributor, github_issue_id: int32, github_pr_id: int32) -> ();
+    "accept": (Contributor, github_issue_id: text, github_pr_id: text) -> ();
     "deposit": () -> (DepositReceipt);
 }
 

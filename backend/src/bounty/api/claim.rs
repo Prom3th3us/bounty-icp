@@ -1,6 +1,7 @@
 use crate::bounty::api::state::{Contributor, IssueId, PullRequestId, BOUNTY_STATE};
 use crate::provider::github::api::get_fixed_by::GetFixedByError;
 use candid::{CandidType, Principal};
+use regex::Regex;
 use serde::{Deserialize, Serialize};
 
 use crate::provider::github::api::{
@@ -10,9 +11,9 @@ use crate::provider::github::client::IGithubClient;
 
 #[derive(Debug, Serialize, Deserialize, CandidType)]
 pub enum ClaimError {
-    IssueNotFound { github_issue_id: i32 },
-    PRNotAccepted { github_pr_id: i32 },
-    PRNotMerged { github_pr_id: i32 },
+    IssueNotFound { github_issue_id: String },
+    PRNotAccepted { github_pr_id: String },
+    PRNotMerged { github_pr_id: String },
 }
 
 // TODO: remove this after finishing draft impl.
@@ -59,13 +60,20 @@ pub async fn claim_impl(
     });
 
     match issue_opt {
-        None => return Some(ClaimError::IssueNotFound { github_issue_id }),
+        None => {
+            return Some(ClaimError::IssueNotFound {
+                github_issue_id: github_issue_id.clone(),
+            })
+        }
         Some(issue) => match issue.bounty.accepted_prs.get(&github_pr_id) {
-            None => Some(ClaimError::PRNotAccepted { github_pr_id }),
+            None => Some(ClaimError::PRNotAccepted {
+                github_pr_id: github_pr_id.clone(),
+            }),
             Some(pull_request) => {
                 let pr_response: PrDetailsResponse =
-                    github_client.get_merged_details(github_pr_id).await;
-                let issue_response: IssueResponse = github_client.get_issue(github_pr_id).await;
+                    github_client.get_merged_details(extract_pull_number(&github_pr_id).unwrap()).await;
+                let issue_response: IssueResponse =
+                    github_client.get_issue(extract_issue_number(&github_issue_id).unwrap()).await;
 
                 todo!()
             }
@@ -86,22 +94,24 @@ mod test_claim {
     fn accept_contributor(
         principal: &str,
         crypto_address: &str,
-        github_issue_id: i32,
-        github_pr_id: i32,
+        github_issue_id: &str,
+        github_pr_id: &str,
     ) {
         accept_impl(
             Contributor {
                 address: Principal::from_text(principal).unwrap(),
                 crypto_address: crypto_address.to_string(),
             },
-            github_issue_id,
-            github_pr_id,
+            github_issue_id.to_string(),
+            github_pr_id.to_string(),
         );
     }
 
     #[test]
     fn test_accept() {
-        let github_issue_id = 123;
+        let github_issue_id = "input-output-hk/hydra/issues/1370";
+        let github_pr_id_1 = "input-output-hk/hydra/pull/1";
+        let github_pr_id_2 = "input-output-hk/hydra/pull/2";
 
         let authority = Principal::from_text("rdmx6-jaaaa-aaaaa-aaadq-cai").unwrap();
 
@@ -111,20 +121,24 @@ mod test_claim {
             "mxzaz-hqaaa-aaaar-qaada-cai",
             "contributor_address_1",
             github_issue_id,
-            1,
+            github_pr_id_1,
         );
         accept_contributor(
             "n5wcd-faaaa-aaaar-qaaea-cai",
             "contributor_address_2",
             github_issue_id,
-            2,
+            github_pr_id_2,
         );
 
         let github_client = GithubClientMock {
             principal: authority,
         };
 
-        let result = block_on(claim_impl(&github_client, github_issue_id, 2));
+        let result = block_on(claim_impl(
+            &github_client,
+            github_issue_id.to_string(),
+            github_pr_id_2.to_string(),
+        ));
 
         match result {
             None => assert!(true),
@@ -141,16 +155,37 @@ mod test_claim {
                 assert_eq!(
                     bounty_canister
                         .github_issues
-                        .get(&github_issue_id)
+                        .get(&github_issue_id.to_string())
                         .unwrap()
                         .bounty
-                        .winner
-                        .unwrap(),
-                    2
+                        .winner,
+                    Some(github_pr_id_2.to_string())
                 );
             } else {
                 panic!("Bounty canister state not initialized");
             }
         });
     }
+}
+
+#[cfg(test)]
+fn extract_pull_number(url: &str) -> Option<i32> {
+    let re = Regex::new(r"/pull/(\d+)").unwrap();
+    if let Some(captures) = re.captures(url) {
+        if let Some(number) = captures.get(1) {
+            return number.as_str().parse().ok();
+        }
+    }
+    None
+}
+
+#[cfg(test)]
+fn extract_issue_number(url: &str) -> Option<i32> {
+    let re = Regex::new(r"/issues/(\d+)").unwrap();
+    if let Some(captures) = re.captures(url) {
+        if let Some(number) = captures.get(1) {
+            return number.as_str().parse().ok();
+        }
+    }
+    None
 }
