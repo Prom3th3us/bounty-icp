@@ -1,4 +1,4 @@
-use crate::bounty::api::state::{Contributor, BOUNTY_STATE};
+use crate::bounty::api::state::{Contributor, IssueId, PullRequestId, BOUNTY_STATE};
 use candid::{CandidType, Principal};
 use serde::{Deserialize, Serialize};
 
@@ -9,6 +9,7 @@ use crate::provider::github::client::IGithubClient;
 
 #[derive(Debug, Serialize, Deserialize, CandidType)]
 pub enum ClaimError {
+    IssueNotFound { github_issue_id: i32 },
     PRNotAccepted { github_pr_id: i32 },
     PRNotMerged { github_pr_id: i32 },
 }
@@ -41,28 +42,29 @@ impl IGithubClient for GithubClientMock {
 #[cfg(test)]
 pub async fn claim_impl(
     github_client: &dyn IGithubClient,
-    github_issue_id: i32,
-    github_pr_id: i32,
+    github_issue_id: IssueId,
+    github_pr_id: PullRequestId,
 ) -> Option<ClaimError> {
-    let contributor_opt: Option<Contributor> = BOUNTY_STATE.with(|state| {
+    use crate::bounty::api::state::Issue;
+
+    let issue_opt: Option<Issue> = BOUNTY_STATE.with(|state| {
         match state.borrow().as_ref() {
             Some(bounty_state) => {
                 // Access the interested_contributors HashMap from the BountyState
-                return bounty_state
-                    .github_issues
-                    .get(&github_pr_id)
-                    .and_then(|issue| issue.bounty.accepted_prs.get(&github_pr_id))
-                    .map(|pr| pr.contributor.clone())
+                return bounty_state.github_issues.get(&github_issue_id).cloned();
             }
             None => panic!("Bounty canister state not initialized"),
         }
     });
-    match contributor_opt {
-        None => Some(ClaimError::PRNotAccepted { github_pr_id }),
-        Some(contributor) => {
-            let issue = github_client.get_issue(github_issue_id).await;
-            todo!()
-        }
+
+    match issue_opt {
+        None => return Some(ClaimError::IssueNotFound { github_issue_id }),
+        Some(issue) => match issue.bounty.accepted_prs.get(&github_pr_id) {
+            None => Some(ClaimError::PRNotAccepted { github_pr_id }),
+            Some(pull_request) => {
+                todo!()
+            }
+        },
     }
 }
 
@@ -117,17 +119,14 @@ mod test_claim {
             principal: authority,
         };
 
-        let result = block_on(claim_impl(
-            &github_client,
-            github_issue_id,
-            2,
-        ));
+        let result = block_on(claim_impl(&github_client, github_issue_id, 2));
 
         match result {
             None => assert!(true),
             Some(claim_error) => match claim_error {
                 ClaimError::PRNotAccepted { github_pr_id: _ } => assert!(false),
                 ClaimError::PRNotMerged { github_pr_id: _ } => assert!(false),
+                ClaimError::IssueNotFound { github_issue_id: _ } => assert!(false),
             },
         }
 
