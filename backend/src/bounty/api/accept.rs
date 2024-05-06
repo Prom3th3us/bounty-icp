@@ -22,7 +22,7 @@ pub fn accept_impl(contributor: Contributor, github_pr_id: i32) -> () {
 #[cfg(test)]
 mod test_accept {
     use super::*;
-    use crate::api::init::init_impl;
+    use crate::bounty::api::init::init_impl;
     use candid::Principal;
 
     #[test]

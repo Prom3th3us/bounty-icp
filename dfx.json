@@ -1,15 +1,10 @@
 {
   "canisters": {
-    "github": {
-      "candid": "provider/github/github.did",
-      "package": "github",
-      "type": "rust"
-    },
-    "bounty": {
-      "candid": "bounty/bounty.did",
-      "package": "bounty",
+    "backend": {
+      "candid": "backend/backend.did",
+      "package": "backend",
       "type": "rust",
-      "dependencies": ["icrc1_ledger", "github"]
+      "dependencies": ["icrc1_ledger"]
     },
     "identity": {
       "type": "custom",

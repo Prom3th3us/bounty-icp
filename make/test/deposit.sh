@@ -13,26 +13,26 @@ approve_allowance() {
 }
 
 deposit() {
-    dfx canister call --output=json bounty deposit "()"
+    dfx canister call --output=json backend deposit "()"
 }
 
 CALLER=$(dfx identity get-principal)
-BOUNTY=$(dfx canister id bounty)
+BACKEND=$(dfx canister id backend)
 
-# Call the bounty canister to deposit from caller and capture the output
-echo "Calling deposit on bounty canister..."
+# Call the backend canister to deposit from caller and capture the output
+echo "Calling deposit on backend canister..."
 
 # check initial balances
 echo "Caller initial balance: $(balance_of $CALLER)"
-echo "Bounty initial balance: $(balance_of $BOUNTY)"
+echo "Backend initial balance: $(balance_of $BACKEND)"
 
 # deposit
-echo "Bounty allowance: $(approve_allowance 100_000 $BOUNTY)"
-echo "Bounty deposit: $(deposit)"
+echo "Backend allowance: $(approve_allowance 100_000 $BACKEND)"
+echo "Backend deposit: $(deposit)"
 
 # check final balances
 sleep 1
 echo "Caller final balance: $(balance_of $CALLER)"
-echo "Bounty final balance: $(balance_of $BOUNTY)"
+echo "Backend final balance: $(balance_of $BACKEND)"
 
 echo "PASS"

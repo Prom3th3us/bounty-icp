@@ -1,9 +1,9 @@
-use crate::api::state::BOUNTY_STATE;
+use crate::bounty::api::state::{BOUNTY_STATE, Contributor};
 use candid::{CandidType, Principal};
 use serde::{Deserialize, Serialize};
-use super::state::Contributor;
 
-use github::{api::{get_issue::IssueResponse, get_merged_details::PrDetailsResponse}, client::IGithubClient};
+use crate::provider::github::api::{get_issue::IssueResponse, get_merged_details::PrDetailsResponse};
+use crate::provider::github::client::IGithubClient;
 
 #[derive(Debug, Serialize, Deserialize, CandidType)]
 pub enum ClaimError {
@@ -55,9 +55,9 @@ pub async fn claim_impl(
 
 #[cfg(test)]
 mod test_claim {
-    use crate::api::accept::accept_impl;
-    use crate::api::init::init_impl;
-    use crate::api::state::{Contributor, BOUNTY_STATE};
+    use crate::bounty::api::accept::accept_impl;
+    use crate::bounty::api::init::init_impl;
+    use crate::bounty::api::state::{Contributor, BOUNTY_STATE};
     use candid::Principal;
     use futures::executor::block_on;
 
