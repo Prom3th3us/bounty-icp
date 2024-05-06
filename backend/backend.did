@@ -1,20 +1,20 @@
 // GitHub Service
 
 type Issue = record {
-    state: opt text;
-    login: opt text;
-    id: opt text;
-    milestone_state: opt text;
-    closed_at: opt text;
-    reason: opt text;
+  state: opt text;
+  login: opt text;
+  id: opt text;
+  milestone_state: opt text;
+  closed_at: opt text;
+  reason: opt text;
 };
 
 type Link = record {
-    issue: opt IssueLink;
+  issue: opt IssueLink;
 };
 
 type IssueLink = record {
-    href: opt text;
+  href: opt text;
 };
 
 type FixedByErr = variant {
@@ -22,7 +22,7 @@ type FixedByErr = variant {
   Rejected : record { error_message : text };
 };
 
-type FixedByReceipt =  variant {
+type FixedByReceipt = variant {
   Err: FixedByErr;
   Ok: text;
 };
@@ -31,7 +31,7 @@ type IsMergedErr = variant {
   Rejected : record { error_message : text };
 };
 
-type IsMergedReceipt =  variant {
+type IsMergedReceipt = variant {
   Err: IsMergedErr;
   Ok: text;
 };
@@ -40,7 +40,7 @@ type IssueErr = variant {
   Rejected : record { error_message : text };
 };
 
-type IssueReceipt =  variant {
+type IssueReceipt = variant {
   Err: IssueErr;
   Ok: Issue;
 };
@@ -49,24 +49,24 @@ type MergeDetailsErr = variant {
   Rejected : record { error_message : text };
 };
 
-type MergeDetailsReceipt =  variant {
+type MergeDetailsReceipt = variant {
   Err: MergeDetailsErr;
   Ok: PrDetailsResponse;
 };
 
 type PrDetailsResponse = record {
-    state: opt text;
-    closed_at: opt text;
-    merge_commit_sha: opt text;
-    merged_at: opt text;
-    links: opt Link;
-    merged: opt bool;
-    merged_by: opt User;
+  state: opt text;
+  closed_at: opt text;
+  merge_commit_sha: opt text;
+  merged_at: opt text;
+  links: opt Link;
+  merged: opt bool;
+  merged_by: opt User;
 };
 
 type User = record {
-    login: opt text;
-    id: opt nat64;
+  login: opt text;
+  id: opt nat64;
 };
 
 type GithubToken = text;
@@ -74,18 +74,25 @@ type GithubToken = text;
 // Bounty Service
 
 type Contributor = record {
-    address: principal;
-    crypto_address: text;
-};
-
-type DepositReceipt =  variant {
-  Err: DepositErr;
-  Ok: nat;
+  address: principal;
+  crypto_address: text;
 };
 
 type DepositErr = variant {
   TransferFailure : record { reason : text };
 };
+
+type DepositReceipt = variant {
+  Err: DepositErr;
+  Ok: nat;
+};
+
+type AcceptErr = variant {
+  IssueNotFound : record { github_issue_id : text };
+  CantAcceptedTwice;
+};
+
+type AcceptReceipt = opt AcceptErr;
 
 service : (authority: principal) -> {
     // GitHub Service
@@ -95,7 +102,7 @@ service : (authority: principal) -> {
     "get_merged_details": (GithubToken) -> (MergeDetailsReceipt);
     // Bounty Service
     "healthcheck": () -> (text);
-    "accept": (Contributor, github_issue_id: text, github_pr_id: text) -> ();
+    "accept": (Contributor, github_issue_id: text, github_pr_id: text) -> (AcceptReceipt);
     "deposit": () -> (DepositReceipt);
 }
 

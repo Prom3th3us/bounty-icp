@@ -1,7 +1,22 @@
 use super::state::{Contributor, PullRequest, BOUNTY_STATE};
 
-pub fn accept_impl(contributor: Contributor, github_issue_id: String, github_pr_id: String) -> () {
-    BOUNTY_STATE.with(|state| {
+use candid::CandidType;
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize, CandidType)]
+pub enum AcceptError {
+    IssueNotFound { github_issue_id: String },
+    CantAcceptedTwice,
+}
+
+pub type AcceptReceipt = Option<AcceptError>;
+
+pub fn accept_impl(
+    contributor: Contributor,
+    github_issue_id: String,
+    github_pr_id: String,
+) -> AcceptReceipt {
+    return BOUNTY_STATE.with(|state| {
         if let Some(ref mut bounty_canister) = *state.borrow_mut() {
             let mut issue_exists = false;
             let mut pr_exists = false;
@@ -19,16 +34,16 @@ pub fn accept_impl(contributor: Contributor, github_issue_id: String, github_pr_
             }
 
             if !issue_exists {
-                // FIXME: change response type to include a proper domain error.
-                // The response should be a Result type (Either).
-                panic!("Can't accept an issue which does not exist.");
+                Some(AcceptError::IssueNotFound { github_issue_id });
             }
 
             if !pr_exists {
-                // FIXME: change response type to include a proper domain error.
-                // The response should be a Result type (Either).
-                panic!("Can't accept twice");
+                Some(AcceptError::CantAcceptedTwice);
             }
+
+            None
+        } else {
+            panic!("Bounty canister state not initialized")
         }
     });
 }
