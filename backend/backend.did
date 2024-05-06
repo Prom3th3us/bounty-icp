@@ -17,6 +17,15 @@ type IssueLink = record {
     href: opt text;
 };
 
+type FixedByErr = variant {
+  IssueNotFound : record { issue_nbr : int32 };
+};
+
+type FixedByReceipt =  variant {
+  Err: FixedByErr;
+  Ok: text;
+};
+
 type PrDetailsResponse = record {
     state: opt text;
     closed_at: opt text;
@@ -53,7 +62,7 @@ type DepositErr = variant {
 service : (authority: principal) -> {
     // GitHub Service
     "get_issue": (GithubToken) -> (Issue);
-    "get_fixed_by": (GithubToken) -> (text);
+    "get_fixed_by": (GithubToken) -> (FixedByReceipt);
     "get_is_merged": (GithubToken) -> (text);
     "get_merged_details": (GithubToken) -> (PrDetailsResponse);
     // Bounty Service

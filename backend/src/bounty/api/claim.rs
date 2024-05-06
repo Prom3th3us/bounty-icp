@@ -1,4 +1,5 @@
 use crate::bounty::api::state::{Contributor, IssueId, PullRequestId, BOUNTY_STATE};
+use crate::provider::github::api::get_fixed_by::GetFixedByError;
 use candid::{CandidType, Principal};
 use serde::{Deserialize, Serialize};
 
@@ -27,7 +28,7 @@ impl IGithubClient for GithubClientMock {
     async fn get_issue(&self, issue_nbr: i32) -> IssueResponse {
         todo!()
     }
-    async fn get_fixed_by(&self, issue_nbr: i32) -> String {
+    async fn get_fixed_by(&self, issue_nbr: i32) -> Result<String, GetFixedByError> {
         todo!()
     }
     async fn get_is_merged(&self, pr_nbr: i32) -> String {

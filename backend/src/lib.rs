@@ -3,7 +3,6 @@ extern crate derive_builder;
 
 use candid::Principal;
 
-// GITHUB SERVICE
 pub mod provider {
     pub mod github {
         pub mod api {
@@ -16,11 +15,11 @@ pub mod provider {
         pub mod utils;
     }
 }
+use provider::github::api::get_fixed_by::GetFixedByError;
 use provider::github::api::get_issue::IssueResponse;
 use provider::github::api::get_merged_details::PrDetailsResponse;
 use provider::github::client::{GithubClient, IGithubClient};
 
-// BOUNTY SERVICE
 pub mod bounty {
     pub mod api {
         pub mod accept;
@@ -52,7 +51,7 @@ async fn get_issue(github_token: String) -> IssueResponse {
 }
 
 #[ic_cdk::update]
-async fn get_fixed_by(github_token: String) -> String {
+async fn get_fixed_by(github_token: String) -> Result<String, GetFixedByError> {
     let owner = "input-output-hk".to_string();
     let repo = "hydra".to_string();
     let issue_nbr = 1370;

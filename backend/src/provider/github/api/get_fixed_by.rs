@@ -2,14 +2,21 @@ use ic_cdk::api::management_canister::http_request::{
     http_request, CanisterHttpRequestArgument, HttpMethod,
 };
 
-use super::super::utils::github_host;
+use crate::provider::github::utils::github_host;
+use candid::CandidType;
+use serde::{Deserialize, Serialize};
 
 use std::collections::HashSet;
 
 use regex::Regex;
 
+#[derive(Debug, Serialize, Deserialize, CandidType)]
+pub enum GetFixedByError {
+    IssueNotFound { issue_nbr: i32 },
+}
+
 // curl https://github.com/input-output-hk/hydra/issues/1370
-pub async fn get_fixed_by_impl(owner: String, repo: String, issue_nbr: i32) -> String {
+pub async fn get_fixed_by_impl(owner: String, repo: String, issue_nbr: i32) -> Result<String, GetFixedByError> {
     // Setup the URL and its query parameters
     let url = format!(
         "https://{}/{}/{}/issues/{}",
@@ -55,9 +62,10 @@ pub async fn get_fixed_by_impl(owner: String, repo: String, issue_nbr: i32) -> S
                 .join(", ");
 
             if let Some(pull_request) = extract_pull_request(&result) {
-                return pull_request;
+                return Ok(remove_github_prefix(&pull_request));
             }
-            return "No PR".to_string();
+            return Err(GetFixedByError::IssueNotFound{issue_nbr});
+            
         }
         Err((rejection_code, message)) => {
             panic!(
@@ -66,6 +74,10 @@ pub async fn get_fixed_by_impl(owner: String, repo: String, issue_nbr: i32) -> S
             );
         }
     }
+}
+
+fn remove_github_prefix(url: &str) -> String {
+    url.replace("https://github.com/", "")
 }
 
 fn extract_pull_request(html: &str) -> Option<String> {
