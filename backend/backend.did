@@ -50,7 +50,7 @@ type DepositErr = variant {
   TransferFailure : record { reason : text };
 };
 
-service : (authority: principal, github_issue_id: int32) -> {
+service : (authority: principal) -> {
     // GitHub Service
     "get_issue": (GithubToken) -> (Issue);
     "get_fixed_by": (GithubToken) -> (text);
@@ -58,7 +58,7 @@ service : (authority: principal, github_issue_id: int32) -> {
     "get_merged_details": (GithubToken) -> (PrDetailsResponse);
     // Bounty Service
     "healthcheck": () -> (text);
-    "accept": (Contributor, github_pr_id: int32) -> ();
+    "accept": (Contributor, github_issue_id: int32, github_pr_id: int32) -> ();
     "deposit": () -> (DepositReceipt);
 }
 

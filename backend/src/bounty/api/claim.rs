@@ -1,8 +1,10 @@
-use crate::bounty::api::state::{BOUNTY_STATE, Contributor};
+use crate::bounty::api::state::{Contributor, BOUNTY_STATE};
 use candid::{CandidType, Principal};
 use serde::{Deserialize, Serialize};
 
-use crate::provider::github::api::{get_issue::IssueResponse, get_merged_details::PrDetailsResponse};
+use crate::provider::github::api::{
+    get_issue::IssueResponse, get_merged_details::PrDetailsResponse,
+};
 use crate::provider::github::client::IGithubClient;
 
 #[derive(Debug, Serialize, Deserialize, CandidType)]
@@ -21,10 +23,18 @@ pub struct GithubClientMock {
 #[cfg(test)]
 #[async_trait::async_trait]
 impl IGithubClient for GithubClientMock {
-    async fn get_issue(&self, issue_nbr: i32) -> IssueResponse { todo!() }
-    async fn get_fixed_by(&self, issue_nbr: i32) -> String { todo!() }
-    async fn get_is_merged(&self, pr_nbr: i32) -> String { todo!() }
-    async fn get_merged_details(&self, pr_nbr: i32) -> PrDetailsResponse { todo!() }
+    async fn get_issue(&self, issue_nbr: i32) -> IssueResponse {
+        todo!()
+    }
+    async fn get_fixed_by(&self, issue_nbr: i32) -> String {
+        todo!()
+    }
+    async fn get_is_merged(&self, pr_nbr: i32) -> String {
+        todo!()
+    }
+    async fn get_merged_details(&self, pr_nbr: i32) -> PrDetailsResponse {
+        todo!()
+    }
 }
 
 // FIXME: remove this annotation after finishing draft impl.
@@ -33,20 +43,23 @@ pub async fn claim_impl(
     github_client: &dyn IGithubClient,
     github_issue_id: i32,
     github_pr_id: i32,
-    github_token: &str,
 ) -> Option<ClaimError> {
     let contributor_opt: Option<Contributor> = BOUNTY_STATE.with(|state| {
         match state.borrow().as_ref() {
             Some(bounty_state) => {
                 // Access the interested_contributors HashMap from the BountyState
-                bounty_state.interested_contributors.get(&github_pr_id).cloned()
+                return bounty_state
+                    .github_issues
+                    .get(&github_pr_id)
+                    .and_then(|issue| issue.bounty.accepted_prs.get(&github_pr_id))
+                    .map(|pr| pr.contributor.clone())
             }
-            None => panic!("Bounty canister state not initialized")
+            None => panic!("Bounty canister state not initialized"),
         }
     });
     match contributor_opt {
-        None => Some(ClaimError::PRNotAccepted{github_pr_id})
-        , Some(contributor) => {
+        None => Some(ClaimError::PRNotAccepted { github_pr_id }),
+        Some(contributor) => {
             let issue = github_client.get_issue(github_issue_id).await;
             todo!()
         }
@@ -63,12 +76,18 @@ mod test_claim {
 
     use super::{claim_impl, ClaimError, GithubClientMock};
 
-    fn accept_contributor(principal: &str, crypto_address: &str, github_pr_id: i32) {
+    fn accept_contributor(
+        principal: &str,
+        crypto_address: &str,
+        github_issue_id: i32,
+        github_pr_id: i32,
+    ) {
         accept_impl(
             Contributor {
                 address: Principal::from_text(principal).unwrap(),
                 crypto_address: crypto_address.to_string(),
             },
+            github_issue_id,
             github_pr_id,
         );
     }
@@ -79,14 +98,30 @@ mod test_claim {
 
         let authority = Principal::from_text("rdmx6-jaaaa-aaaaa-aaadq-cai").unwrap();
 
-        init_impl(authority, github_issue_id);
+        init_impl(authority);
 
-        accept_contributor("mxzaz-hqaaa-aaaar-qaada-cai", "contributor_address_1", 1);
-        accept_contributor("n5wcd-faaaa-aaaar-qaaea-cai", "contributor_address_2", 2);
+        accept_contributor(
+            "mxzaz-hqaaa-aaaar-qaada-cai",
+            "contributor_address_1",
+            github_issue_id,
+            1,
+        );
+        accept_contributor(
+            "n5wcd-faaaa-aaaar-qaaea-cai",
+            "contributor_address_2",
+            github_issue_id,
+            2,
+        );
 
-        let github_client = GithubClientMock{principal: authority};
+        let github_client = GithubClientMock {
+            principal: authority,
+        };
 
-        let result = block_on(claim_impl(&github_client, github_issue_id, 2, "GithubToken"));
+        let result = block_on(claim_impl(
+            &github_client,
+            github_issue_id,
+            2,
+        ));
 
         match result {
             None => assert!(true),
@@ -99,7 +134,16 @@ mod test_claim {
         BOUNTY_STATE.with(|state| {
             let bounty_canister = state.borrow();
             if let Some(ref bounty_canister) = *bounty_canister {
-                assert_eq!(bounty_canister.winner.unwrap(), 2);
+                assert_eq!(
+                    bounty_canister
+                        .github_issues
+                        .get(&github_issue_id)
+                        .unwrap()
+                        .bounty
+                        .winner
+                        .unwrap(),
+                    2
+                );
             } else {
                 panic!("Bounty canister state not initialized");
             }

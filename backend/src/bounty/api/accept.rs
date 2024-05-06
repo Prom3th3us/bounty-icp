@@ -1,19 +1,33 @@
-use super::state::{Contributor, BOUNTY_STATE};
+use super::state::{Contributor, PullRequest, BOUNTY_STATE};
 
-pub fn accept_impl(contributor: Contributor, github_pr_id: i32) -> () {
-    // FIXME: check contributor is the owner of the PR.
+pub fn accept_impl(contributor: Contributor, github_issue_id: i32, github_pr_id: i32) -> () {
     BOUNTY_STATE.with(|state| {
         if let Some(ref mut bounty_canister) = *state.borrow_mut() {
-            if bounty_canister.interested_contributors.contains_key(&github_pr_id) {
-                // do not update if the key is present.
-                // > The contributor is suppose to be the PR owner and the principal who called accept,
-                // > thus its fixed.
-                // FIXME: change response type to include a propper domain error.
+            let mut issue_exists = false;
+            let mut pr_exists = false;
+
+            if let Some(ref mut issue) = bounty_canister.github_issues.get_mut(&github_issue_id) {
+                issue_exists = true;
+                if !issue.bounty.accepted_prs.contains_key(&github_pr_id) {
+                    let pr = PullRequest {
+                        id: github_pr_id,
+                        contributor,
+                    };
+                    issue.bounty.accepted_prs.insert(github_pr_id, pr);
+                    pr_exists = true;
+                }
+            }
+
+            if !issue_exists {
+                // FIXME: change response type to include a proper domain error.
+                // The response should be a Result type (Either).
+                panic!("Can't accept an issue which does not exist.");
+            }
+
+            if !pr_exists {
+                // FIXME: change response type to include a proper domain error.
                 // The response should be a Result type (Either).
                 panic!("Can't accept twice");
-            } else {
-                // Add the contributor to the interested contributors list.
-                bounty_canister.interested_contributors.insert(github_pr_id, contributor);
             }
         }
     });
@@ -30,15 +44,26 @@ mod test_accept {
         let authority =
             Principal::from_text("t2y5w-qp34w-qixaj-s67wp-syrei-5yqse-xbed6-z5nsd-fszmf-izgt2-lqe")
                 .unwrap();
-        init_impl(authority, 123);
+        init_impl(authority);
+        let github_issue_id = 123;
         BOUNTY_STATE.with(|state| {
             let bounty_canister = state.borrow();
             if let Some(ref bounty_canister) = *bounty_canister {
-                assert_eq!(bounty_canister.interested_contributors.len(), 0);
+                assert_eq!(
+                    bounty_canister
+                        .github_issues
+                        .get(&github_issue_id)
+                        .unwrap()
+                        .bounty
+                        .accepted_prs
+                        .len(),
+                    0
+                );
             } else {
                 panic!("Bounty canister state not initialized");
             }
         });
+
         let contributor =
             Principal::from_text("t2y5w-qp34w-qixaj-s67wp-syrei-5yqse-xbed6-z5nsd-fszmf-izgt2-lqe")
                 .unwrap();
@@ -48,12 +73,22 @@ mod test_accept {
                 address: contributor,
                 crypto_address: "contributor_address".to_string(),
             },
+            github_issue_id,
             github_pr_id,
         );
         BOUNTY_STATE.with(|state| {
             let bounty_canister = state.borrow();
             if let Some(ref bounty_canister) = *bounty_canister {
-                assert_eq!(bounty_canister.interested_contributors.len(), 1);
+                assert_eq!(
+                    bounty_canister
+                        .github_issues
+                        .get(&github_issue_id)
+                        .unwrap()
+                        .bounty
+                        .accepted_prs
+                        .len(),
+                    1
+                );
             } else {
                 panic!("Bounty canister state not initialized");
             }

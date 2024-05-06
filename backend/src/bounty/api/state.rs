@@ -6,21 +6,37 @@ use serde::{Deserialize, Serialize};
 type IssueId = i32;
 type PullRequestId = i32;
 
-#[derive(Debug, Serialize, Deserialize, CandidType)]
-pub struct BountyState {
-    pub authority: Principal,
-    pub github_issue_id: IssueId,
-    pub interested_contributors: HashMap<PullRequestId, Contributor>,
-    pub claimed: bool,
-    pub winner: Option<PullRequestId>,
-}
-
-#[derive(Debug, Serialize, Deserialize, CandidType, Clone)]
+#[derive(Debug, Serialize, Deserialize, CandidType, Clone, Builder)]
 pub struct Contributor {
     pub address: Principal,
     pub crypto_address: String,
 }
 
+#[derive(Debug, Serialize, Deserialize, CandidType, Clone, Builder)]
+pub struct PullRequest {
+    pub id: PullRequestId,
+    pub contributor: Contributor,
+}
+
+#[derive(Debug, Serialize, Deserialize, CandidType, Clone, Builder)]
+pub struct Bounty {
+    pub amount: i32,
+    pub winner: Option<PullRequestId>,
+    pub accepted_prs: HashMap<PullRequestId, PullRequest>,
+}
+
+#[derive(Debug, Serialize, Deserialize, CandidType, Clone, Builder)]
+pub struct Issue {
+    pub id: IssueId,
+    pub maintainer: Contributor,
+    pub bounty: Bounty,
+}
+
+#[derive(Debug, Serialize, Deserialize, CandidType)]
+pub struct BountyState {
+    pub authority: Principal,
+    pub github_issues: HashMap<IssueId, Issue>,   
+}
 // Define thread-local storage for the bounty canister state
 // WASM is single-threaded by nature. [RefCell] and [thread_local!] are used despite being not totally safe primitives.
 // This is to ensure that the canister state can be used throughout.
