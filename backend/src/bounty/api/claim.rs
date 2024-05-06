@@ -50,7 +50,9 @@ pub async fn claim_impl(
     github_issue_id: IssueId,
     github_pr_id: PullRequestId,
 ) -> Option<ClaimError> {
-    use crate::{bounty::api::state::Issue, provider::github::api::get_merged_details::MergeDetailsErr};
+    use crate::{
+        bounty::api::state::Issue, provider::github::api::get_merged_details::MergeDetailsErr,
+    };
 
     let issue_opt: Option<Issue> = BOUNTY_STATE.with(|state| {
         match state.borrow().as_ref() {
@@ -174,23 +176,30 @@ mod test_claim {
 }
 
 #[cfg(test)]
-fn extract_pull_number(url: &str) -> Option<i32> {
-    let re = Regex::new(r"/pull/(\d+)").unwrap();
-    if let Some(captures) = re.captures(url) {
-        if let Some(number) = captures.get(1) {
-            return number.as_str().parse().ok();
+fn extract_regex<T: std::str::FromStr>(regex: &str, str: &str) -> Option<T> {
+    match Regex::new(regex) {
+        Err(err) => {
+            let error_message = format!("Error (regex): {}", err);
+            print!("{}", error_message);
+            None
+        },
+        Ok(re) => {
+            if let Some(captures) = re.captures(str) {
+                if let Some(number) = captures.get(1) {
+                    return number.as_str().parse().ok();
+                }
+            }
+            None
         }
     }
-    None
+}
+
+#[cfg(test)]
+fn extract_pull_number(url: &str) -> Option<i32> {
+    return extract_regex(r"/pull/(\d+)", url);
 }
 
 #[cfg(test)]
 fn extract_issue_number(url: &str) -> Option<i32> {
-    let re = Regex::new(r"/issues/(\d+)").unwrap();
-    if let Some(captures) = re.captures(url) {
-        if let Some(number) = captures.get(1) {
-            return number.as_str().parse().ok();
-        }
-    }
-    None
+    return extract_regex(r"/issues/(\d+)", url);
 }
