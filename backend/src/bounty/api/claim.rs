@@ -62,6 +62,10 @@ pub async fn claim_impl(
         Some(issue) => match issue.bounty.accepted_prs.get(&github_pr_id) {
             None => Some(ClaimError::PRNotAccepted { github_pr_id }),
             Some(pull_request) => {
+                let pr_response: PrDetailsResponse =
+                    github_client.get_merged_details(github_pr_id).await;
+                let issue_response: IssueResponse = github_client.get_issue(github_pr_id).await;
+
                 todo!()
             }
         },
