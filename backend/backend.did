@@ -94,6 +94,20 @@ type AcceptErr = variant {
 
 type AcceptReceipt = opt AcceptErr;
 
+
+type RegisterIssueErr = variant {
+  CantRegisterIssueTwice;
+};
+
+type RegisterIssueReceipt = opt RegisterIssueErr;
+
+
+type UnRegisterIssueErr = variant {
+  IssueNotFound;
+};
+
+type UnRegisterIssueReceipt = opt UnRegisterIssueErr;
+
 service : (authority: principal) -> {
     // GitHub Service
     "get_issue": (GithubToken) -> (IssueReceipt);
@@ -104,6 +118,10 @@ service : (authority: principal) -> {
     "healthcheck": () -> (text);
     "accept": (Contributor, github_issue_id: text, github_pr_id: text) -> (AcceptReceipt);
     "deposit": () -> (DepositReceipt);
+    "register_issue": (github_issue: text) -> (RegisterIssueReceipt);
+    "unregister_issue": (github_issue_id: text) -> (UnRegisterIssueReceipt);
 }
+
+
 
 
