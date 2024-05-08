@@ -75,7 +75,7 @@ type GithubIssueId = text;
 
 type GithubPullRequestId = text;
 
-type BountyAmmount = nat;
+type BountyAmount = nat32;
 
 // Bounty Service
 
@@ -110,7 +110,7 @@ type UnRegisterIssueErr = variant {
 type UnRegisterIssueReceipt = opt UnRegisterIssueErr;
 
 service : (authority: principal) -> {
-  
+
     // GitHub Service
     "get_issue": (GithubToken) -> (IssueReceipt);
     "get_fixed_by": (GithubToken) -> (FixedByReceipt);
@@ -121,6 +121,6 @@ service : (authority: principal) -> {
     "healthcheck": () -> (text);
     "accept": (Contributor, GithubIssueId, GithubPullRequestId) -> (AcceptReceipt);
     "deposit": () -> (DepositReceipt);
-    "register_issue": (Contributor, GithubIssueId, BountyAmmount) -> (RegisterIssueReceipt);
+    "register_issue": (Contributor, GithubIssueId, BountyAmount) -> (RegisterIssueReceipt);
     "unregister_issue": (GithubIssueId) -> (UnRegisterIssueReceipt);
 }
