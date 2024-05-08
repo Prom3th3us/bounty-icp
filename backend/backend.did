@@ -71,6 +71,12 @@ type User = record {
 
 type GithubToken = text;
 
+type GithubIssueId = text;
+
+type GithubPullRequestId = text;
+
+type BountyAmmount = nat;
+
 // Bounty Service
 
 type Contributor = record {
@@ -88,19 +94,14 @@ type DepositReceipt = variant {
 };
 
 type AcceptErr = variant {
-  IssueNotFound : record { github_issue_id : text };
-  CantAcceptedTwice;
+  IssueNotFound : record { GithubIssueId };
 };
 
 type AcceptReceipt = opt AcceptErr;
 
-
-type RegisterIssueErr = variant {
-  CantRegisterIssueTwice;
-};
+type RegisterIssueErr = ()
 
 type RegisterIssueReceipt = opt RegisterIssueErr;
-
 
 type UnRegisterIssueErr = variant {
   IssueNotFound;
@@ -109,19 +110,17 @@ type UnRegisterIssueErr = variant {
 type UnRegisterIssueReceipt = opt UnRegisterIssueErr;
 
 service : (authority: principal) -> {
+  
     // GitHub Service
     "get_issue": (GithubToken) -> (IssueReceipt);
     "get_fixed_by": (GithubToken) -> (FixedByReceipt);
     "get_is_merged": (GithubToken) -> (IsMergedReceipt);
     "get_merged_details": (GithubToken) -> (MergeDetailsReceipt);
+
     // Bounty Service
     "healthcheck": () -> (text);
-    "accept": (Contributor, github_issue_id: text, github_pr_id: text) -> (AcceptReceipt);
+    "accept": (Contributor, GithubIssueId, GithubPullRequestId) -> (AcceptReceipt);
     "deposit": () -> (DepositReceipt);
-    "register_issue": (github_issue: text) -> (RegisterIssueReceipt);
-    "unregister_issue": (github_issue_id: text) -> (UnRegisterIssueReceipt);
+    "register_issue": (Contributor, GithubIssueId, BountyAmmount) -> (RegisterIssueReceipt);
+    "unregister_issue": (GithubIssueId) -> (UnRegisterIssueReceipt);
 }
-
-
-
-
