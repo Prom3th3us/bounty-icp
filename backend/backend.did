@@ -99,11 +99,11 @@ type AcceptErr = variant {
 
 type AcceptReceipt = opt AcceptErr;
 
-type RegisterIssueErr = ()
+type RegisterIssueErr = null;
 
 type RegisterIssueReceipt = opt RegisterIssueErr;
 
-type UnRegisterIssueErr = ()
+type UnRegisterIssueErr = null;
 
 type UnRegisterIssueReceipt = opt UnRegisterIssueErr;
 
