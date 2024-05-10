@@ -184,7 +184,7 @@ fn extract_regex<T: std::str::FromStr>(regex: &str, str: &str) -> Option<T> {
             let error_message = format!("Error (regex): {}", err);
             print!("{}", error_message);
             None
-        },
+        }
         Ok(re) => {
             if let Some(captures) = re.captures(str) {
                 if let Some(number) = captures.get(1) {

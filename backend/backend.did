@@ -103,9 +103,7 @@ type RegisterIssueErr = ()
 
 type RegisterIssueReceipt = opt RegisterIssueErr;
 
-type UnRegisterIssueErr = variant {
-  IssueNotFound;
-};
+type UnRegisterIssueErr = ()
 
 type UnRegisterIssueReceipt = opt UnRegisterIssueErr;
 

@@ -1,35 +1,19 @@
-use super::state::{Bounty, Contributor, Issue, PullRequest, BOUNTY_STATE};
-
-use crate::bounty::api::register_issue::RegisterIssueError;
-use crate::register_issue_impl;
-use candid::CandidType;
-use candid::Nat;
-use num_bigint::BigUint;
-use serde::{Deserialize, Serialize};
-
-#[derive(Debug, Serialize, Deserialize, CandidType)]
-pub enum UnRegisterIssueError {
-    IssueNotFound,
-}
+use super::state::BOUNTY_STATE;
+use crate::IssueId;
+pub type UnRegisterIssueError = ();
 
 pub type UnRegisterIssueReceipt = Option<UnRegisterIssueError>;
 
-pub fn unregister_issue_impl(github_issue: String) -> UnRegisterIssueReceipt {
-    print!("Unregistering issue: {:?}", github_issue);
+pub fn unregister_issue_impl(github_issue_id: IssueId) -> UnRegisterIssueReceipt {
     return BOUNTY_STATE.with(|state| {
         if let Some(ref mut bounty_canister) = *state.borrow_mut() {
-            let mut issue_exists = false;
-
-            if let Some(ref mut issue) = bounty_canister.github_issues.get_mut(&github_issue) {
-                issue_exists = true;
-            }
+            let issue_exists = bounty_canister.github_issues.contains_key(&github_issue_id);
 
             if issue_exists {
-                bounty_canister.github_issues.remove(&github_issue);
-                None
-            } else {
-                Some(UnRegisterIssueError::IssueNotFound)
+                // TODO: Check contributor it's registered and github_issue_id exists on github
+                bounty_canister.github_issues.remove(&github_issue_id);
             }
+            None
         } else {
             panic!("Bounty canister state not initialized")
         }
@@ -40,7 +24,11 @@ pub fn unregister_issue_impl(github_issue: String) -> UnRegisterIssueReceipt {
 mod test_unregister_issue {
     use super::*;
     use crate::bounty::api::init::init_impl;
-    use candid::Principal;
+    use crate::bounty::api::register_issue::RegisterIssueError;
+    use crate::bounty::api::state::{Contributor, BOUNTY_STATE};
+    use crate::register_issue_impl;
+    use candid::{Nat, Principal};
+    use num_bigint::BigUint;
 
     #[test]
     fn test_unregister_issue() {
@@ -78,15 +66,6 @@ mod test_unregister_issue {
                 panic!("Bounty canister state not initialized");
             }
         });
-    }
-    #[test]
-    fn test_cant_unregister_a_non_existent_issue() {
-        let authority = Principal::anonymous();
-        init_impl(authority);
-        let github_issue_id = "input-output-hk/hydra/issues/1370".to_string();
-        let r: Option<UnRegisterIssueError> = unregister_issue_impl(github_issue_id.clone());
-        assert!(r.is_some());
-        assert!(matches!(r, Some(UnRegisterIssueError::IssueNotFound)));
     }
 
     #[test]
