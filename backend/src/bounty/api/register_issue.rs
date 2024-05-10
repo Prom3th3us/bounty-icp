@@ -1,38 +1,40 @@
+use std::collections::HashMap;
+
+use super::state::IssueId;
 use super::state::{Bounty, Contributor, Issue, PullRequest, BOUNTY_STATE};
 
 use candid::CandidType;
 use candid::Nat;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize, CandidType)]
-pub enum RegisterIssueError {
-    CantRegisterIssueTwice,
-}
+pub type RegisterIssueError = ();
 
 pub type RegisterIssueReceipt = Option<RegisterIssueError>;
 
 pub fn register_issue_impl(
     contributor: Contributor,
-    github_issue_id: String,
+    github_issue_id: IssueId,
     amount: Nat,
 ) -> RegisterIssueReceipt {
-    print!("Registering issue: {:?}", github_issue);
     return BOUNTY_STATE.with(|state| {
         if let Some(ref mut bounty_canister) = *state.borrow_mut() {
-            let mut issue_exists = false;
-
-            if let Some(ref mut issue) = bounty_canister.github_issues.get_mut(&github_issue.id) {
-                issue_exists = true;
-            }
-
-            if issue_exists {
-                Some(RegisterIssueError::CantRegisterIssueTwice)
-            } else {
+            let issue_exists = bounty_canister.github_issues.contains_key(&github_issue_id);
+            if !issue_exists {
+                let github_issue = Issue {
+                    id: github_issue_id.clone(),
+                    maintainer: contributor,
+                    bounty: Bounty {
+                        amount: amount,
+                        winner: None,
+                        accepted_prs: HashMap::new(),
+                    },
+                };
+                // TODO: Check contributor it's registered and github_issue_id exists on github
                 bounty_canister
                     .github_issues
-                    .insert(github_issue.id.clone(), github_issue);
-                None
+                    .insert(github_issue_id.clone(), github_issue);
             }
+            None
         } else {
             panic!("Bounty canister state not initialized")
         }
@@ -81,13 +83,19 @@ mod test_register_issue {
 
         let bounty_amount: Nat = Nat(BigUint::from(100u32));
 
-        let r: Option<RegisterIssueError> =
-            register_issue_impl(contributor, github_issue_id.clone(), bounty_amount);
+        let r: Option<RegisterIssueError> = register_issue_impl(
+            contributor.clone(),
+            github_issue_id.clone(),
+            bounty_amount.clone(),
+        );
 
         assert!(r.is_none());
 
-        let r2: Option<RegisterIssueError> =
-            register_issue_impl(contributor, github_issue_id.clone(), bounty_amount);
+        let r2: Option<RegisterIssueError> = register_issue_impl(
+            contributor.clone(),
+            github_issue_id.clone(),
+            bounty_amount.clone(),
+        );
 
         assert!(r2.is_none());
     }

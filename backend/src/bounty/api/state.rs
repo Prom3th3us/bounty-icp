@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use candid::{CandidType, Principal};
+use candid::{CandidType, Nat, Principal};
 use serde::{Deserialize, Serialize};
 
 pub type IssueId = String;
@@ -20,7 +20,7 @@ pub struct PullRequest {
 
 #[derive(Debug, Serialize, Deserialize, CandidType, Clone, Builder)]
 pub struct Bounty {
-    pub amount: i32,
+    pub amount: Nat,
     pub winner: Option<PullRequestId>,
     pub accepted_prs: HashMap<PullRequestId, PullRequest>,
 }
