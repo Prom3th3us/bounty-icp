@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate derive_builder;
 
-use candid::Principal;
+use candid::{Nat, Principal};
 
 pub mod provider {
     pub mod github {
@@ -38,7 +38,7 @@ use bounty::api::accept::{accept_impl, AcceptReceipt};
 use bounty::api::deposit::{deposit_impl, DepositReceipt};
 use bounty::api::init::init_impl;
 use bounty::api::register_issue::{register_issue_impl, RegisterIssueReceipt};
-use bounty::api::state::{Contributor, Issue};
+use bounty::api::state::{Contributor, IssueId, PullRequestId};
 use bounty::api::unregister_issue::{unregister_issue_impl, UnRegisterIssueReceipt};
 
 // GITHUB SERVICE
@@ -103,8 +103,8 @@ fn init(authority: Principal) -> () {
 #[ic_cdk::update]
 fn accept(
     contributor: Contributor,
-    github_issue_id: String,
-    github_pr_id: String,
+    github_issue_id: IssueId,
+    github_pr_id: PullRequestId,
 ) -> AcceptReceipt {
     return accept_impl(contributor, github_issue_id, github_pr_id);
 }
@@ -120,11 +120,15 @@ async fn healthcheck() -> String {
 }
 
 #[ic_cdk::update]
-fn register_issue(github_issue: Issue) -> RegisterIssueReceipt {
-    return register_issue_impl(github_issue);
+fn register_issue(
+    contributor: Contributor,
+    github_issue_id: IssueId,
+    amount: Nat,
+) -> RegisterIssueReceipt {
+    return register_issue_impl(contributor, github_issue_id, amount);
 }
 
 #[ic_cdk::update]
-fn unregister_issue(github_issue_id: String) -> UnRegisterIssueReceipt {
+fn unregister_issue(github_issue_id: IssueId) -> UnRegisterIssueReceipt {
     return unregister_issue_impl(github_issue_id);
 }

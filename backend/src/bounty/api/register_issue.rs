@@ -1,11 +1,9 @@
 use std::collections::HashMap;
 
 use super::state::IssueId;
-use super::state::{Bounty, Contributor, Issue, PullRequest, BOUNTY_STATE};
+use super::state::{Bounty, Contributor, Issue, BOUNTY_STATE};
 
-use candid::CandidType;
 use candid::Nat;
-use serde::{Deserialize, Serialize};
 
 pub type RegisterIssueError = ();
 
@@ -67,6 +65,18 @@ mod test_register_issue {
             register_issue_impl(contributor, github_issue_id.clone(), bounty_amount);
 
         assert!(r.is_none());
+
+        BOUNTY_STATE.with(|state| {
+            let bounty_canister = state.borrow();
+            if let Some(ref bounty_canister) = *bounty_canister {
+                assert!(bounty_canister
+                    .github_issues
+                    .get(&github_issue_id)
+                    .is_some());
+            } else {
+                panic!("Bounty canister state not initialized");
+            }
+        });
     }
     #[test]
     fn test_cant_register_issue_twice() {
