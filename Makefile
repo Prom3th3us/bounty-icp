@@ -97,9 +97,9 @@ test-4: # install
 	cat $$TMP_FILE; \
 	rm -f $$TMP_FILE
 
-.PHONY: test-a
-.SILENT: test-a
-test-a: # install
+.PHONY: test
+.SILENT: test
+test: install
 	# Call the backend canister for healthcheck and capture the output
 	@echo "Calling healthcheck on backend canister..."
 	@TMP_FILE=$$(mktemp); \
