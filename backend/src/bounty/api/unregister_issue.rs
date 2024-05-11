@@ -11,6 +11,7 @@ pub fn unregister_issue_impl(github_issue_id: IssueId) -> UnRegisterIssueReceipt
 
             if issue_exists {
                 // TODO: Check contributor it's registered and github_issue_id exists on github
+                // TODO check the issue is claimed, return error if not!
                 bounty_canister.github_issues.remove(&github_issue_id);
             }
             None

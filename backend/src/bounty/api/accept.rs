@@ -27,6 +27,7 @@ pub fn accept_impl(
                         updated_at: now
                     };
                     // TODO: Check contributor it's registered and github_issue_id exists on github
+                    // TODO check the issue is not claimed and still open!
                     issue.bounty.accepted_prs.insert(github_pr_id.clone(), pr);
                 }
             }
