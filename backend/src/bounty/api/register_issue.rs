@@ -32,6 +32,7 @@ pub fn register_issue_impl(
             };
             // TODO: Check contributor it's registered and github_issue_id exists on github
             // TODO check the issue is still open!
+            // TODO check the contributor gave allowance >= amount to the canister!
             state
                 .github_issues
                 .insert(github_issue_id.clone(), github_issue);
