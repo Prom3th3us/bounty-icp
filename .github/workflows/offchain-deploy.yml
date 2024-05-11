@@ -6,11 +6,13 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  deploy:
+  offchain-deploy:
     name: deploy-gcf
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          path: 'offchain/github'
       - id: 'auth'
         uses: 'google-github-actions/auth@v2'
         with:

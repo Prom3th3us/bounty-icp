@@ -4,15 +4,18 @@ name: Offchain Release
     branches:
       - release
 jobs:
-  release:
+  offchain-release:
     name: release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
+        with:
+          path: 'offchain/github'
+      - uses: actions/setup-node@v3
         with:
           node-version: lts/*
           cache: npm
+          cache-dependency-path: 'offchain/github'
       - run: npx semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

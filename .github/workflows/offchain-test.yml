@@ -8,13 +8,16 @@ name: Offchain Test
       - opened
       - synchronize
 jobs:
-  test:
+  offchain-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
         with:
-          cache: npm
+          path: 'offchain/github'
+      - uses: actions/setup-node@v3
+        with:
           node-version: 20
+          cache: npm
+          cache-dependency-path: 'offchain/github'
       - run: npm ci
       - run: npm test
