@@ -37,7 +37,7 @@ use bounty::api::accept::{accept_impl, AcceptReceipt};
 use bounty::api::deposit::{deposit_impl, DepositReceipt};
 use bounty::api::init::init_impl;
 use bounty::api::register_issue::{register_issue_impl, RegisterIssueReceipt};
-use bounty::api::state::{Contributor, InitArgs, IssueId, PullRequestId, UserId};
+use bounty::api::state::{InitArgs, IssueId, PullRequestId, UserId};
 use bounty::api::unregister_issue::{unregister_issue_impl, UnRegisterIssueReceipt};
 
 use crate::bounty::api::state::is_canister_custodian_guard;
@@ -113,11 +113,11 @@ fn init(args: Option<InitArgs>) -> () {
 
 #[ic_cdk::update(guard=is_canister_custodian_guard)]
 fn accept(
-    contributor: Contributor,
+    github_user_id: UserId,
     github_issue_id: IssueId,
     github_pr_id: PullRequestId,
 ) -> AcceptReceipt {
-    return accept_impl(contributor, github_issue_id, github_pr_id, time());
+    return accept_impl(github_user_id, github_issue_id, github_pr_id, time());
 }
 
 #[ic_cdk::update(guard=is_canister_custodian_guard)]
@@ -132,16 +132,16 @@ async fn healthcheck() -> String {
 
 #[ic_cdk::update(guard=is_canister_custodian_guard)]
 fn register_issue(
-    contributor: Contributor,
+    github_user_id: UserId,
     github_issue_id: IssueId,
     amount: Nat,
 ) -> RegisterIssueReceipt {
-    return register_issue_impl(contributor, github_issue_id, amount, time());
+    return register_issue_impl(github_user_id, github_issue_id, amount, time());
 }
 
 #[ic_cdk::update(guard=is_canister_custodian_guard)]
-fn unregister_issue(github_issue_id: IssueId) -> UnRegisterIssueReceipt {
-    return unregister_issue_impl(github_issue_id);
+fn unregister_issue(github_user_id: UserId, github_issue_id: IssueId) -> UnRegisterIssueReceipt {
+    return unregister_issue_impl(github_user_id, github_issue_id);
 }
 
 // USER SERVICE

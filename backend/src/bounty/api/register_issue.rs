@@ -3,14 +3,16 @@ use std::collections::HashMap;
 use candid::Nat;
 
 use crate::bounty::api::state;
-use crate::bounty::api::state::{Bounty, Contributor, Issue, IssueMetadata, IssueId, Time};
+use crate::bounty::api::state::{Bounty, Issue, IssueMetadata, IssueId, Time};
+
+use super::state::UserId;
 
 pub type RegisterIssueError = ();
 
 pub type RegisterIssueReceipt = Option<RegisterIssueError>;
 
 pub fn register_issue_impl(
-    contributor: Contributor,
+    github_user_id: UserId,
     github_issue_id: IssueId,
     amount: Nat,
     now: Time,
@@ -19,7 +21,7 @@ pub fn register_issue_impl(
         if !state.is_issue_existed(&github_issue_id) {
             let github_issue = Issue {
                 id: github_issue_id.clone(),
-                maintainer: contributor.clone(),
+                maintainer: github_user_id.clone(),
                 bounty: Bounty {
                     amount: amount,
                     winner: None,
@@ -57,14 +59,12 @@ mod test_register_issue {
 
         let github_issue_id = "input-output-hk/hydra/issues/1370".to_string();
 
-        let contributor = Contributor {
-            address: Principal::anonymous(),
-        };
+        let github_user_id = "prom3th3us".to_string();
 
         let bounty_amount: Nat = Nat(BigUint::from(100u32));
 
         let r: Option<RegisterIssueError> =
-            register_issue_impl(contributor, github_issue_id.clone(), bounty_amount, 100u64);
+            register_issue_impl(github_user_id, github_issue_id.clone(), bounty_amount, 100u64);
 
         assert!(r.is_none());
 
@@ -81,15 +81,13 @@ mod test_register_issue {
 
         let github_issue_id = "input-output-hk/hydra/issues/1370".to_string();
 
-        let contributor = Contributor {
-            address: Principal::anonymous(),
-        };
+        let github_user_id = "prom3th3us".to_string();
 
         let bounty_amount: Nat = Nat(BigUint::from(100u32));
 
         let now = 100u64;
         let r: Option<RegisterIssueError> = register_issue_impl(
-            contributor.clone(),
+            github_user_id.clone(),
             github_issue_id.clone(),
             bounty_amount.clone(),
             now,
@@ -98,7 +96,7 @@ mod test_register_issue {
         assert!(r.is_none());
 
         let r2: Option<RegisterIssueError> = register_issue_impl(
-            contributor.clone(),
+            github_user_id.clone(),
             github_issue_id.clone(),
             bounty_amount.clone(),
             now,
