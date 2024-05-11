@@ -110,6 +110,19 @@ type InitArgs = record {
   custodians : opt vec principal;
 };
 
+// Bounty Service
+
+type UserId = text;
+
+type RegisterUserErr = null;
+
+type RegisterUserReceipt = opt RegisterUserErr;
+
+type UpsertUserWalletErr = null;
+
+type UpsertUserWalletReceipt = opt UpsertUserWalletErr;
+
+
 service : (opt InitArgs) -> {
 
     // GitHub Service
@@ -121,8 +134,11 @@ service : (opt InitArgs) -> {
     // Bounty Service
     "healthcheck": () -> (text);
     "accept": (Contributor, GithubIssueId, GithubPullRequestId) -> (AcceptReceipt);
-    
     "deposit": () -> (DepositReceipt);
     "register_issue": (Contributor, GithubIssueId, BountyAmount) -> (RegisterIssueReceipt);
     "unregister_issue": (GithubIssueId) -> (UnRegisterIssueReceipt);
+    
+    // User Service
+    "register_user": (UserId) -> (RegisterUserReceipt);
+    "upsert_user_wallet": (UserId, principal)  -> (UpsertUserWalletReceipt);
 }
