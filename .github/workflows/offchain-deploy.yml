@@ -11,8 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with:
-          path: 'offchain/github'
       - id: 'auth'
         uses: 'google-github-actions/auth@v2'
         with:
@@ -25,7 +23,9 @@ jobs:
 
       - name: 'Use gcloud CLI'
         run: 'gcloud info'
+      
       - name: Deploy to GCF
+        working-directory: offchain/github
         run: |
           gcloud functions deploy bounty-icp-gh-app \
             --runtime nodejs20 \

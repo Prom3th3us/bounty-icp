@@ -9,13 +9,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with:
-          path: 'offchain/github'
       - uses: actions/setup-node@v3
         with:
           node-version: lts/*
           cache: npm
-          cache-dependency-path: 'offchain/github'
-      - run: npx semantic-release
+      - name: Semantic Release
+        working-directory: offchain/github
+        run: npx semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

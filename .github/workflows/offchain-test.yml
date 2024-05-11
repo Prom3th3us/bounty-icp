@@ -12,12 +12,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with:
-          path: 'offchain/github'
       - uses: actions/setup-node@v3
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: 'offchain/github'
-      - run: npm ci
-      - run: npm test
+      
+      - name: Install Dependencies
+        working-directory: offchain/github
+        run: npm ci
+
+      - name: Run Tests
+        working-directory: offchain/github
+        run: npm test
