@@ -88,10 +88,6 @@ type BountyAmount = nat32;
 
 // Bounty Service
 
-type Contributor = record {
-  address: principal;
-};
-
 type DepositErr = variant {
   TransferFailure : record { reason : text };
 };
@@ -143,10 +139,10 @@ service : (opt InitArgs) -> {
 
     // Bounty Service
     "healthcheck": () -> (text);
-    "accept": (Contributor, GithubIssueId, GithubPullRequestId) -> (AcceptReceipt);
+    "accept": (UserId, GithubIssueId, GithubPullRequestId) -> (AcceptReceipt);
     "deposit": () -> (DepositReceipt);
-    "register_issue": (Contributor, GithubIssueId, BountyAmount) -> (RegisterIssueReceipt);
-    "unregister_issue": (GithubIssueId) -> (UnRegisterIssueReceipt);
+    "register_issue": (UserId, GithubIssueId, BountyAmount) -> (RegisterIssueReceipt);
+    "unregister_issue": (UserId, GithubIssueId) -> (UnRegisterIssueReceipt);
     
     // User Service
     "register_user": (UserId) -> (RegisterUserReceipt);

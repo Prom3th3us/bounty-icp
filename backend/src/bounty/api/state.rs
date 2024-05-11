@@ -13,11 +13,6 @@ pub type PullRequestId = String;
 pub type Time = u64;
 
 #[derive(Debug, CandidType, Deserialize, Clone)]
-pub struct Contributor {
-    pub address: Principal,
-}
-
-#[derive(Debug, CandidType, Deserialize, Clone)]
 pub struct PullRequestMetadata {
     pub accepted_at: Time,
     pub updated_at: Time,
@@ -26,7 +21,7 @@ pub struct PullRequestMetadata {
 #[derive(Debug, CandidType, Deserialize, Clone)]
 pub struct PullRequest {
     pub id: PullRequestId,
-    pub contributor: Contributor,
+    pub contributor: UserId,
     pub metadata: PullRequestMetadata,
 }
 
@@ -46,7 +41,7 @@ pub struct IssueMetadata {
 #[derive(Debug, CandidType, Deserialize, Clone)]
 pub struct Issue {
     pub id: IssueId,
-    pub maintainer: Contributor,
+    pub maintainer: UserId,
     pub bounty: Bounty,
     pub metadata: IssueMetadata,
 }
