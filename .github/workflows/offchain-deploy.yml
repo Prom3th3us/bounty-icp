@@ -1,0 +1,33 @@
+name: Offchain Deploy
+on:
+  push:
+    branches:
+      - release
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    name: deploy-gcf
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+        with:
+          project_id: ${{ secrets.PROJECT_ID }}
+
+      - name: 'Use gcloud CLI'
+        run: 'gcloud info'
+      - name: Deploy to GCF
+        run: |
+          gcloud functions deploy bounty-icp-gh-app \
+            --runtime nodejs20 \
+            --allow-unauthenticated \
+            --trigger-http \
+            --entry-point probotApp \
+            --set-env-vars APP_ID="${{secrets.APP_ID}}",PRIVATE_KEY="${{secrets.PRIVATE_KEY}}",WEBHOOK_SECRET="${{secrets.WEBHOOK_SECRET}}"
