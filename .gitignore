@@ -25,4 +25,3 @@ dist/
 
 # lock files
 Cargo.lock
-package-lock.json
