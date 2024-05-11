@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use ic_cdk::api::time;
 use super::state::IssueId;
 use super::state::{Bounty, Contributor, Issue, BOUNTY_STATE};
 
@@ -18,6 +19,7 @@ pub fn register_issue_impl(
         if let Some(ref mut bounty_canister) = *state.borrow_mut() {
             let issue_exists = bounty_canister.github_issues.contains_key(&github_issue_id);
             if !issue_exists {
+                let now = time();
                 let github_issue = Issue {
                     id: github_issue_id.clone(),
                     maintainer: contributor,
@@ -26,6 +28,9 @@ pub fn register_issue_impl(
                         winner: None,
                         accepted_prs: HashMap::new(),
                     },
+                    created_at: now,
+                    updated_at: now,
+                    
                 };
                 // TODO: Check contributor it's registered and github_issue_id exists on github
                 bounty_canister

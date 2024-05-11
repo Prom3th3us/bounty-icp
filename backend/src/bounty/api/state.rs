@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 
 pub type IssueId = String;
 pub type PullRequestId = String;
+pub type Time = u64;
 
 #[derive(Debug, Serialize, Deserialize, CandidType, Clone, Builder)]
 pub struct Contributor {
@@ -16,6 +17,8 @@ pub struct Contributor {
 pub struct PullRequest {
     pub id: PullRequestId,
     pub contributor: Contributor,
+    pub accepted_at: Time,
+    pub updated_at: Time
 }
 
 #[derive(Debug, Serialize, Deserialize, CandidType, Clone, Builder)]
@@ -30,6 +33,8 @@ pub struct Issue {
     pub id: IssueId,
     pub maintainer: Contributor,
     pub bounty: Bounty,
+    pub created_at: Time,
+    pub updated_at: Time
 }
 
 #[derive(Debug, Serialize, Deserialize, CandidType)]

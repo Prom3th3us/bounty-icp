@@ -4,7 +4,7 @@
   "description": "Internet Computer starter application",
   "keywords": [
     "Internet Computer",
-    "Motoko",
+    "Rust",
     "JavaScript",
     "Canister"
   ],

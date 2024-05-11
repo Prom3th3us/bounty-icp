@@ -1,5 +1,6 @@
 use super::state::{Contributor, PullRequest, BOUNTY_STATE};
 
+use ic_cdk::api::time;
 use candid::CandidType;
 use serde::{Deserialize, Serialize};
 
@@ -24,9 +25,12 @@ pub fn accept_impl(
             if let Some(ref mut issue) = bounty_canister.github_issues.get_mut(&github_issue_id) {
                 issue_exists = true;
                 if !issue.bounty.accepted_prs.contains_key(&github_pr_id) {
+                    let now = time();
                     let pr = PullRequest {
                         id: github_pr_id.clone(),
                         contributor,
+                        accepted_at: now,
+                        updated_at: now
                     };
                     issue.bounty.accepted_prs.insert(github_pr_id.clone(), pr);
                     pr_exists = true;
