@@ -3,7 +3,7 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 
 use crate::bounty::api::state;
-use crate::bounty::api::state::{Contributor, IssueId, PullRequestId};
+use crate::bounty::api::state::{IssueId, PullRequestId};
 use crate::provider::github::api::get_fixed_by::FixedByErr;
 use crate::provider::github::api::get_is_merged::IsMergedErr;
 use crate::provider::github::api::get_issue::IssueErr;
@@ -94,7 +94,6 @@ mod test_claim {
     use crate::bounty::api::accept::accept_impl;
     use crate::bounty::api::init::init_impl;
     use crate::bounty::api::state;
-    use crate::bounty::api::state::Contributor;
     use candid::Principal;
     use futures::executor::block_on;
 
@@ -102,10 +101,9 @@ mod test_claim {
 
     fn accept_contributor(principal: &str, github_issue_id: &str, github_pr_id: &str) {
         let now = 100u64;
+        let github_user_id = "prom3th3us";
         accept_impl(
-            Contributor {
-                address: Principal::from_text(principal).unwrap(),
-            },
+            github_user_id.to_string(),
             github_issue_id.to_string(),
             github_pr_id.to_string(),
             now,

@@ -2,7 +2,7 @@ use candid::CandidType;
 use serde::{Deserialize, Serialize};
 
 use crate::bounty::api::state;
-use crate::bounty::api::state::{Contributor, IssueId, PullRequest, PullRequestId, Time, PullRequestMetadata};
+use crate::bounty::api::state::{UserId, IssueId, PullRequest, PullRequestId, Time, PullRequestMetadata};
 
 #[derive(Debug, Serialize, Deserialize, CandidType)]
 pub enum AcceptError {
@@ -12,7 +12,7 @@ pub enum AcceptError {
 pub type AcceptReceipt = Option<AcceptError>;
 
 pub fn accept_impl(
-    contributor: Contributor,
+    github_user_id: UserId,
     github_issue_id: IssueId,
     github_pr_id: PullRequestId,
     now: Time,
@@ -22,13 +22,13 @@ pub fn accept_impl(
             if !issue.bounty.accepted_prs.contains_key(&github_pr_id) {
                 let pr = PullRequest {
                     id: github_pr_id.clone(),
-                    contributor,
+                    contributor: github_user_id.clone(),
                     metadata: PullRequestMetadata {
                         accepted_at: now,
                         updated_at: now,
                     }
                 };
-                // TODO: Check contributor it's registered and github_issue_id exists on github
+                // TODO: Check contributor it's registered
                 // TODO check the issue is not claimed and still open!
                 issue.bounty.accepted_prs.insert(github_pr_id.clone(), pr);
             }
@@ -63,15 +63,13 @@ mod test_accept {
 
         let github_issue_id = "input-output-hk/hydra/issues/1370".to_string();
 
-        let contributor = Contributor {
-            address: Principal::anonymous(),
-        };
+        let github_user_id = "prom3th3us".to_string();
 
         let bounty_amount: Nat = Nat(BigUint::from(100u32));
 
         let now = 100u64;
         let r: Option<RegisterIssueError> =
-            register_issue_impl(contributor, github_issue_id.clone(), bounty_amount, now);
+            register_issue_impl(github_user_id, github_issue_id.clone(), bounty_amount, now);
 
         assert!(r.is_none());
 
@@ -88,13 +86,11 @@ mod test_accept {
             );
         });
 
-        let contributor = Principal::anonymous();
+        let github_user_id = "prom3th3us".to_string();
         let github_pr_id = "input-output-hk/hydra/pull/1266".to_string();
         let now = 100u64;
         accept_impl(
-            Contributor {
-                address: contributor,
-            },
+            github_user_id,
             github_issue_id.clone(),
             github_pr_id.clone(),
             now,

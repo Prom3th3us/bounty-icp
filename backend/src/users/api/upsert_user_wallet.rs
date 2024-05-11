@@ -12,8 +12,8 @@ pub fn upsert_user_wallet_impl(
     github_user_id: UserId,
     wallet: Option<Principal>,
 ) -> UpsertUserWalletReceipt {
-    // TODO: Check user it's registered on github
     return state::with_mut(|state| {
+        // TODO: return user not found error
         if let Some(github_user) = state.github_known_users_mut().get_mut(&github_user_id) {
             github_user.wallet = wallet;
         }

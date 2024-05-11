@@ -1,15 +1,14 @@
-use crate::IssueId;
-
 use crate::bounty::api::state;
+use crate::bounty::api::state::{UserId, IssueId};
 
 pub type UnRegisterIssueError = ();
 
 pub type UnRegisterIssueReceipt = Option<UnRegisterIssueError>;
 
-pub fn unregister_issue_impl(github_issue_id: IssueId) -> UnRegisterIssueReceipt {
+pub fn unregister_issue_impl(github_user_id: UserId, github_issue_id: IssueId) -> UnRegisterIssueReceipt {
     return state::with_mut(|state| {
         if state.is_issue_existed(&github_issue_id) {
-            // TODO: Check contributor it's registered and github_issue_id exists on github
+            // TODO: Check contributor it's registered
             // TODO check the issue is claimed, return error if not!
             state.github_issues.remove(&github_issue_id);
         }
@@ -22,7 +21,6 @@ mod test_unregister_issue {
     use super::*;
     use crate::bounty::api::init::init_impl;
     use crate::bounty::api::register_issue::RegisterIssueError;
-    use crate::bounty::api::state::Contributor;
     use crate::register_issue_impl;
     use candid::{Nat, Principal};
     use num_bigint::BigUint;
@@ -36,22 +34,20 @@ mod test_unregister_issue {
 
         let github_issue_id = "input-output-hk/hydra/issues/1370".to_string();
 
-        let contributor = Contributor {
-            address: Principal::anonymous(),
-        };
+        let github_user_id = "prom3th3us".to_string();
 
         let bounty_amount: Nat = Nat(BigUint::from(100u32));
 
         let now = 100u64;
         let r: Option<RegisterIssueError> = register_issue_impl(
-            contributor.clone(),
+            github_user_id.clone(),
             github_issue_id.clone(),
             bounty_amount.clone(),
             now,
         );
 
         assert!(r.is_none());
-        let r2: Option<UnRegisterIssueError> = unregister_issue_impl(github_issue_id.clone());
+        let r2: Option<UnRegisterIssueError> = unregister_issue_impl(github_user_id.clone(), github_issue_id.clone());
         assert!(r2.is_none());
 
         state::with(|state| {
@@ -68,25 +64,23 @@ mod test_unregister_issue {
 
         let github_issue_id = "input-output-hk/hydra/issues/1370".to_string();
 
-        let contributor = Contributor {
-            address: Principal::anonymous(),
-        };
+        let github_user_id = "prom3th3us".to_string();
 
         let bounty_amount: Nat = Nat(BigUint::from(100u32));
 
         let now = 100u64;
         let r: Option<RegisterIssueError> = register_issue_impl(
-            contributor.clone(),
+            github_user_id.clone(),
             github_issue_id.clone(),
             bounty_amount.clone(),
             now,
         );
 
         assert!(r.is_none());
-        let r2: Option<UnRegisterIssueError> = unregister_issue_impl(github_issue_id.clone());
+        let r2: Option<UnRegisterIssueError> = unregister_issue_impl(github_user_id.clone(), github_issue_id.clone());
         assert!(r2.is_none());
 
-        let r3: Option<UnRegisterIssueError> = unregister_issue_impl(github_issue_id.clone());
+        let r3: Option<UnRegisterIssueError> = unregister_issue_impl(github_user_id.clone(), github_issue_id.clone());
         assert!(r3.is_none());
     }
 }
