@@ -1,4 +1,4 @@
-use candid::Nat;
+use candid::{Nat, Principal};
 
 pub mod provider {
     pub mod github {
@@ -45,10 +45,12 @@ use crate::bounty::api::state::is_canister_custodian_guard;
 pub mod users {
     pub mod api {
         pub mod register_user;
+        pub mod upsert_user_wallet;
     }
 }
 
 use users::api::register_user::{register_user_impl, RegisterUserReceipt};
+use users::api::upsert_user_wallet::{upsert_user_wallet_impl, UpsertUserWalletReceipt};
 
 // GITHUB SERVICE
 #[ic_cdk::update(guard=is_canister_custodian_guard)]
@@ -146,4 +148,12 @@ fn unregister_issue(github_issue_id: IssueId) -> UnRegisterIssueReceipt {
 #[ic_cdk::update(guard=is_canister_custodian_guard)]
 fn register_user(github_user_id: UserId) -> RegisterUserReceipt {
     return register_user_impl(github_user_id, time());
+}
+
+#[ic_cdk::update(guard=is_canister_custodian_guard)]
+fn upsert_user_wallet(
+    github_user_id: UserId,
+    wallet: Option<Principal>,
+) -> UpsertUserWalletReceipt {
+    return upsert_user_wallet_impl(github_user_id, wallet);
 }

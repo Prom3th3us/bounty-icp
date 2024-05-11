@@ -140,5 +140,5 @@ service : (opt InitArgs) -> {
     
     // User Service
     "register_user": (UserId) -> (RegisterUserReceipt);
-    "upsert_user_wallet": (UserId, principal)  -> (UpsertUserWalletReceipt);
+    "upsert_user_wallet": (UserId, opt principal)  -> (UpsertUserWalletReceipt);
 }
