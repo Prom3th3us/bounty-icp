@@ -6,6 +6,8 @@ use serde::Deserialize;
 
 pub type IssueId = String;
 
+pub type UserId = String;
+
 pub type PullRequestId = String;
 
 pub type Time = u64;
@@ -57,9 +59,18 @@ pub struct Metadata {
 }
 
 #[derive(Debug, CandidType, Deserialize, Default)]
+pub struct GitHubUser {
+    pub user_id: UserId,
+    pub wallet: Option<Principal>,
+    pub created_at: Time,
+    pub updated_at: Time,
+}
+
+#[derive(Debug, CandidType, Deserialize, Default)]
 pub struct BountyState {
     pub metadata: Metadata,
     pub github_issues: HashMap<IssueId, Issue>,
+    pub github_known_users: HashMap<UserId, GitHubUser>,
 }
 // Define thread-local storage for the bounty canister state
 // WASM is single-threaded by nature. [RefCell] and [thread_local!] are used despite being not totally safe primitives.
@@ -87,7 +98,12 @@ pub struct InitArgs {
 }
 
 impl BountyState {
-    pub fn init_metadata(&mut self, time: Time, default_custodian: Principal, args: Option<InitArgs>) {
+    pub fn init_metadata(
+        &mut self,
+        time: Time,
+        default_custodian: Principal,
+        args: Option<InitArgs>,
+    ) {
         let metadata = self.metadata_mut();
         metadata.custodians.insert(default_custodian);
         if let Some(args) = args {
