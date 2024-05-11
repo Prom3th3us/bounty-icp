@@ -24,3 +24,31 @@ pub fn register_user_impl(github_user_id: UserId, time: Time) -> RegisterUserRec
         None
     });
 }
+
+#[cfg(test)]
+mod test_register_user {
+    use super::*;
+    use crate::bounty::api::init::init_impl;
+    use candid::Principal;
+
+    #[test]
+    fn test_register_user() {
+        let time = 100u64;
+        let caller = Principal::anonymous();
+
+        init_impl(time, caller, None);
+
+        let github_user_id = "prom3th3us".to_string();
+
+        state::with(|state| {
+            assert!(!state.is_user_existed(&github_user_id));
+        });
+
+        let r: Option<RegisterUserError> = register_user_impl(github_user_id.clone(), time);
+        assert!(r.is_none());
+
+        state::with(|state| {
+            assert!(state.is_user_existed(&github_user_id));
+        });
+    }
+}
