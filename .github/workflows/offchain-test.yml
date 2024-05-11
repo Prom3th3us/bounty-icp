@@ -16,11 +16,5 @@ jobs:
         with:
           node-version: 20
           cache: npm
-      
-      - name: Install Dependencies
-        working-directory: offchain/github
-        run: npm ci
-
-      - name: Run Tests
-        working-directory: offchain/github
-        run: npm test
+      - run: npm ci
+      - run: npm test
