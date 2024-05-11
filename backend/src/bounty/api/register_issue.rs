@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
-use ic_cdk::api::time;
-use super::state::IssueId;
+use super::state::{IssueId, Time};
 use super::state::{Bounty, Contributor, Issue, BOUNTY_STATE};
 
 use candid::Nat;
@@ -14,12 +13,12 @@ pub fn register_issue_impl(
     contributor: Contributor,
     github_issue_id: IssueId,
     amount: Nat,
+    now: Time
 ) -> RegisterIssueReceipt {
     return BOUNTY_STATE.with(|state| {
         if let Some(ref mut bounty_canister) = *state.borrow_mut() {
             let issue_exists = bounty_canister.github_issues.contains_key(&github_issue_id);
             if !issue_exists {
-                let now = time();
                 let github_issue = Issue {
                     id: github_issue_id.clone(),
                     maintainer: contributor,
@@ -67,7 +66,7 @@ mod test_register_issue {
         let bounty_amount: Nat = Nat(BigUint::from(100u32));
 
         let r: Option<RegisterIssueError> =
-            register_issue_impl(contributor, github_issue_id.clone(), bounty_amount);
+            register_issue_impl(contributor, github_issue_id.clone(), bounty_amount, 100u64);
 
         assert!(r.is_none());
 
@@ -98,10 +97,12 @@ mod test_register_issue {
 
         let bounty_amount: Nat = Nat(BigUint::from(100u32));
 
+        let now = 100u64;
         let r: Option<RegisterIssueError> = register_issue_impl(
             contributor.clone(),
             github_issue_id.clone(),
             bounty_amount.clone(),
+            now
         );
 
         assert!(r.is_none());
@@ -110,6 +111,7 @@ mod test_register_issue {
             contributor.clone(),
             github_issue_id.clone(),
             bounty_amount.clone(),
+            now
         );
 
         assert!(r2.is_none());

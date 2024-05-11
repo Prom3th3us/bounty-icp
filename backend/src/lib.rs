@@ -15,6 +15,7 @@ pub mod provider {
         pub mod utils;
     }
 }
+use ic_cdk::api::time;
 use provider::github::api::get_fixed_by::FixedByErr;
 use provider::github::api::get_is_merged::IsMergedErr;
 use provider::github::api::get_issue::{IssueErr, IssueResponse};
@@ -106,7 +107,7 @@ fn accept(
     github_issue_id: IssueId,
     github_pr_id: PullRequestId,
 ) -> AcceptReceipt {
-    return accept_impl(contributor, github_issue_id, github_pr_id);
+    return accept_impl(contributor, github_issue_id, github_pr_id, time());
 }
 
 #[ic_cdk::update]
@@ -125,7 +126,7 @@ fn register_issue(
     github_issue_id: IssueId,
     amount: Nat,
 ) -> RegisterIssueReceipt {
-    return register_issue_impl(contributor, github_issue_id, amount);
+    return register_issue_impl(contributor, github_issue_id, amount, time());
 }
 
 #[ic_cdk::update]

@@ -97,6 +97,7 @@ mod test_claim {
     use crate::bounty::api::state::{Contributor, BOUNTY_STATE};
     use candid::Principal;
     use futures::executor::block_on;
+    use ic_cdk::api::time;
 
     use super::{claim_impl, ClaimError, GithubClientMock};
 
@@ -106,6 +107,7 @@ mod test_claim {
         github_issue_id: &str,
         github_pr_id: &str,
     ) {
+        let now = 100u64;
         accept_impl(
             Contributor {
                 address: Principal::from_text(principal).unwrap(),
@@ -113,6 +115,7 @@ mod test_claim {
             },
             github_issue_id.to_string(),
             github_pr_id.to_string(),
+            now
         );
     }
 

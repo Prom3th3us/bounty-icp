@@ -1,50 +1,42 @@
-use super::state::{Contributor, PullRequest, BOUNTY_STATE};
+use super::state::{Contributor, IssueId, PullRequest, PullRequestId, Time, BOUNTY_STATE};
 
-use ic_cdk::api::time;
 use candid::CandidType;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, CandidType)]
 pub enum AcceptError {
     IssueNotFound { github_issue_id: String },
-    CantAcceptedTwice,
 }
 
 pub type AcceptReceipt = Option<AcceptError>;
 
 pub fn accept_impl(
     contributor: Contributor,
-    github_issue_id: String,
-    github_pr_id: String,
+    github_issue_id: IssueId,
+    github_pr_id: PullRequestId,
+    now: Time
 ) -> AcceptReceipt {
     return BOUNTY_STATE.with(|state| {
         if let Some(ref mut bounty_canister) = *state.borrow_mut() {
-            let mut issue_exists = false;
-            let mut pr_exists = false;
-
             if let Some(ref mut issue) = bounty_canister.github_issues.get_mut(&github_issue_id) {
-                issue_exists = true;
                 if !issue.bounty.accepted_prs.contains_key(&github_pr_id) {
-                    let now = time();
                     let pr = PullRequest {
                         id: github_pr_id.clone(),
                         contributor,
                         accepted_at: now,
                         updated_at: now
                     };
+                    // TODO: Check contributor it's registered and github_issue_id exists on github
                     issue.bounty.accepted_prs.insert(github_pr_id.clone(), pr);
-                    pr_exists = true;
                 }
             }
-
+            
+            let issue_exists = bounty_canister.github_issues.contains_key(&github_issue_id);
             if !issue_exists {
-                Some(AcceptError::IssueNotFound { github_issue_id });
+                return Some(AcceptError::IssueNotFound { github_issue_id });
             }
 
-            if !pr_exists {
-                Some(AcceptError::CantAcceptedTwice);
-            }
-
+            // TODO check the issue is not closed and has no winner already
             None
         } else {
             panic!("Bounty canister state not initialized")
@@ -55,16 +47,29 @@ pub fn accept_impl(
 #[cfg(test)]
 mod test_accept {
     use super::*;
-    use crate::bounty::api::init::init_impl;
-    use candid::Principal;
+    use crate::bounty::api::{init::init_impl, register_issue::{register_issue_impl, RegisterIssueError}};
+    use candid::{Nat, Principal};
+    use num_bigint::BigUint;
 
     #[test]
     fn test_accept() {
-        let authority =
-            Principal::from_text("t2y5w-qp34w-qixaj-s67wp-syrei-5yqse-xbed6-z5nsd-fszmf-izgt2-lqe")
-                .unwrap();
+        let authority = Principal::anonymous();
         init_impl(authority);
         let github_issue_id = "input-output-hk/hydra/issues/1370".to_string();
+
+        let contributor = Contributor {
+            address: Principal::anonymous(),
+            crypto_address: "0x1234".to_string(),
+        };
+
+        let bounty_amount: Nat = Nat(BigUint::from(100u32));
+
+        let now = 100u64;
+        let r: Option<RegisterIssueError> =
+            register_issue_impl(contributor, github_issue_id.clone(), bounty_amount, now);
+
+        assert!(r.is_none());
+        
         BOUNTY_STATE.with(|state| {
             let bounty_canister = state.borrow();
             if let Some(ref bounty_canister) = *bounty_canister {
@@ -83,10 +88,9 @@ mod test_accept {
             }
         });
 
-        let contributor =
-            Principal::from_text("t2y5w-qp34w-qixaj-s67wp-syrei-5yqse-xbed6-z5nsd-fszmf-izgt2-lqe")
-                .unwrap();
+        let contributor = Principal::anonymous();
         let github_pr_id = "input-output-hk/hydra/pull/1266".to_string();
+        let now = 100u64;
         accept_impl(
             Contributor {
                 address: contributor,
@@ -94,6 +98,7 @@ mod test_accept {
             },
             github_issue_id.clone(),
             github_pr_id.clone(),
+            now
         );
         BOUNTY_STATE.with(|state| {
             let bounty_canister = state.borrow();

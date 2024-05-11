@@ -45,10 +45,12 @@ mod test_unregister_issue {
 
         let bounty_amount: Nat = Nat(BigUint::from(100u32));
 
+        let now = 100u64;
         let r: Option<RegisterIssueError> = register_issue_impl(
             contributor.clone(),
             github_issue_id.clone(),
             bounty_amount.clone(),
+            now
         );
 
         assert!(r.is_none());
@@ -83,10 +85,12 @@ mod test_unregister_issue {
 
         let bounty_amount: Nat = Nat(BigUint::from(100u32));
 
+        let now = 100u64;
         let r: Option<RegisterIssueError> = register_issue_impl(
             contributor.clone(),
             github_issue_id.clone(),
             bounty_amount.clone(),
+            now
         );
 
         assert!(r.is_none());
