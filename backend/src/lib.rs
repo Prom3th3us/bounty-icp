@@ -39,10 +39,18 @@ use bounty::api::accept::{accept_impl, AcceptReceipt};
 use bounty::api::deposit::{deposit_impl, DepositReceipt};
 use bounty::api::init::init_impl;
 use bounty::api::register_issue::{register_issue_impl, RegisterIssueReceipt};
-use bounty::api::state::{Contributor, IssueId, PullRequestId, InitArgs};
+use bounty::api::state::{Contributor, InitArgs, IssueId, PullRequestId, UserId};
 use bounty::api::unregister_issue::{unregister_issue_impl, UnRegisterIssueReceipt};
 
 use crate::bounty::api::state::is_canister_custodian_guard;
+
+pub mod users {
+    pub mod api {
+        pub mod register_user;
+    }
+}
+
+use users::api::register_user::{register_user_impl, RegisterUserReceipt};
 
 // GITHUB SERVICE
 #[ic_cdk::update(guard=is_canister_custodian_guard)]
@@ -147,4 +155,10 @@ fn register_issue(
 #[ic_cdk::update(guard=is_canister_custodian_guard)]
 fn unregister_issue(github_issue_id: IssueId) -> UnRegisterIssueReceipt {
     return unregister_issue_impl(github_issue_id);
+}
+
+// USER SERVICE
+#[ic_cdk::update(guard=is_canister_custodian_guard)]
+fn register_user(github_user_id: UserId) -> RegisterUserReceipt {
+    return register_user_impl(github_user_id, time());
 }

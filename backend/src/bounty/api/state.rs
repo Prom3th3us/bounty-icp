@@ -125,8 +125,16 @@ impl BountyState {
         &mut self.metadata
     }
 
+    pub fn github_known_users_mut(&mut self) -> &mut HashMap<UserId, GitHubUser> {
+        &mut self.github_known_users
+    }
+
     pub fn is_issue_existed(&self, github_issue_id: &IssueId) -> bool {
         self.github_issues.contains_key(github_issue_id)
+    }
+
+    pub fn is_user_existed(&self, github_user_id: &UserId) -> bool {
+        self.github_known_users.contains_key(github_user_id)
     }
 
     pub fn init(&mut self, time: Time, caller: Principal, args: Option<InitArgs>) {
