@@ -1,7 +1,4 @@
-#[macro_use]
-extern crate derive_builder;
-
-use candid::{Nat, Principal};
+use candid::Nat;
 
 pub mod provider {
     pub mod github {
@@ -16,6 +13,7 @@ pub mod provider {
     }
 }
 use ic_cdk::api::time;
+use ic_cdk::caller;
 use provider::github::api::get_fixed_by::FixedByErr;
 use provider::github::api::get_is_merged::IsMergedErr;
 use provider::github::api::get_issue::{IssueErr, IssueResponse};
@@ -39,7 +37,7 @@ use bounty::api::accept::{accept_impl, AcceptReceipt};
 use bounty::api::deposit::{deposit_impl, DepositReceipt};
 use bounty::api::init::init_impl;
 use bounty::api::register_issue::{register_issue_impl, RegisterIssueReceipt};
-use bounty::api::state::{Contributor, IssueId, PullRequestId};
+use bounty::api::state::{Contributor, IssueId, PullRequestId, InitArgs};
 use bounty::api::unregister_issue::{unregister_issue_impl, UnRegisterIssueReceipt};
 
 // GITHUB SERVICE
@@ -97,8 +95,8 @@ async fn get_merged_details(github_token: String) -> Result<PrDetailsResponse, M
 
 // BOUNTY SERVICE
 #[ic_cdk::init]
-fn init(authority: Principal) -> () {
-    init_impl(authority);
+fn init(args: Option<InitArgs>) -> () {
+    init_impl(time(), caller(), args);
 }
 
 #[ic_cdk::update]

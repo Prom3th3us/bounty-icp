@@ -1,7 +1,8 @@
-use super::state::{Contributor, IssueId, PullRequest, PullRequestId, Time, BOUNTY_STATE};
-
 use candid::CandidType;
 use serde::{Deserialize, Serialize};
+
+use crate::bounty::api::state;
+use crate::bounty::api::state::{Contributor, IssueId, PullRequest, PullRequestId, Time, PullRequestMetadata};
 
 #[derive(Debug, Serialize, Deserialize, CandidType)]
 pub enum AcceptError {
@@ -14,53 +15,56 @@ pub fn accept_impl(
     contributor: Contributor,
     github_issue_id: IssueId,
     github_pr_id: PullRequestId,
-    now: Time
+    now: Time,
 ) -> AcceptReceipt {
-    return BOUNTY_STATE.with(|state| {
-        if let Some(ref mut bounty_canister) = *state.borrow_mut() {
-            if let Some(ref mut issue) = bounty_canister.github_issues.get_mut(&github_issue_id) {
-                if !issue.bounty.accepted_prs.contains_key(&github_pr_id) {
-                    let pr = PullRequest {
-                        id: github_pr_id.clone(),
-                        contributor,
+    return state::with_mut(|state| {
+        if let Some(ref mut issue) = state.github_issues.get_mut(&github_issue_id) {
+            if !issue.bounty.accepted_prs.contains_key(&github_pr_id) {
+                let pr = PullRequest {
+                    id: github_pr_id.clone(),
+                    contributor,
+                    metadata: PullRequestMetadata {
                         accepted_at: now,
-                        updated_at: now
-                    };
-                    // TODO: Check contributor it's registered and github_issue_id exists on github
-                    // TODO check the issue is not claimed and still open!
-                    issue.bounty.accepted_prs.insert(github_pr_id.clone(), pr);
-                }
+                        updated_at: now,
+                    }
+                };
+                // TODO: Check contributor it's registered and github_issue_id exists on github
+                // TODO check the issue is not claimed and still open!
+                issue.bounty.accepted_prs.insert(github_pr_id.clone(), pr);
             }
-            
-            let issue_exists = bounty_canister.github_issues.contains_key(&github_issue_id);
-            if !issue_exists {
-                return Some(AcceptError::IssueNotFound { github_issue_id });
-            }
-
-            // TODO check the issue is not closed and has no winner already
-            None
-        } else {
-            panic!("Bounty canister state not initialized")
         }
+
+        let issue_exists = state.is_issue_existed(&github_issue_id);
+        if !issue_exists {
+            return Some(AcceptError::IssueNotFound { github_issue_id });
+        }
+
+        // TODO check the issue is not closed and has no winner already
+        None
     });
 }
 
 #[cfg(test)]
 mod test_accept {
     use super::*;
-    use crate::bounty::api::{init::init_impl, register_issue::{register_issue_impl, RegisterIssueError}};
+    use crate::bounty::api::{
+        init::init_impl,
+        register_issue::{register_issue_impl, RegisterIssueError},
+    };
     use candid::{Nat, Principal};
     use num_bigint::BigUint;
 
     #[test]
     fn test_accept() {
-        let authority = Principal::anonymous();
-        init_impl(authority);
+        let time = 100u64;
+        let caller = Principal::anonymous();
+
+        init_impl(time, caller, None);
+
         let github_issue_id = "input-output-hk/hydra/issues/1370".to_string();
 
         let contributor = Contributor {
             address: Principal::anonymous(),
-            crypto_address: "0x1234".to_string(),
         };
 
         let bounty_amount: Nat = Nat(BigUint::from(100u32));
@@ -70,23 +74,18 @@ mod test_accept {
             register_issue_impl(contributor, github_issue_id.clone(), bounty_amount, now);
 
         assert!(r.is_none());
-        
-        BOUNTY_STATE.with(|state| {
-            let bounty_canister = state.borrow();
-            if let Some(ref bounty_canister) = *bounty_canister {
-                assert_eq!(
-                    bounty_canister
-                        .github_issues
-                        .get(&github_issue_id)
-                        .unwrap()
-                        .bounty
-                        .accepted_prs
-                        .len(),
-                    0
-                );
-            } else {
-                panic!("Bounty canister state not initialized");
-            }
+
+        state::with(|state| {
+            assert_eq!(
+                state
+                    .github_issues
+                    .get(&github_issue_id)
+                    .unwrap()
+                    .bounty
+                    .accepted_prs
+                    .len(),
+                0
+            );
         });
 
         let contributor = Principal::anonymous();
@@ -95,28 +94,22 @@ mod test_accept {
         accept_impl(
             Contributor {
                 address: contributor,
-                crypto_address: "contributor_address".to_string(),
             },
             github_issue_id.clone(),
             github_pr_id.clone(),
-            now
+            now,
         );
-        BOUNTY_STATE.with(|state| {
-            let bounty_canister = state.borrow();
-            if let Some(ref bounty_canister) = *bounty_canister {
-                assert_eq!(
-                    bounty_canister
-                        .github_issues
-                        .get(&github_issue_id)
-                        .unwrap()
-                        .bounty
-                        .accepted_prs
-                        .len(),
-                    1
-                );
-            } else {
-                panic!("Bounty canister state not initialized");
-            }
+        state::with(|state| {
+            assert_eq!(
+                state
+                    .github_issues
+                    .get(&github_issue_id)
+                    .unwrap()
+                    .bounty
+                    .accepted_prs
+                    .len(),
+                1
+            );
         });
     }
 }

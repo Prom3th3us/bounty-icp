@@ -1,11 +1,13 @@
-use crate::bounty::api::state::{Contributor, IssueId, PullRequestId, BOUNTY_STATE};
+use candid::{CandidType, Principal};
+use regex::Regex;
+use serde::{Deserialize, Serialize};
+
+use crate::bounty::api::state;
+use crate::bounty::api::state::{Contributor, IssueId, PullRequestId};
 use crate::provider::github::api::get_fixed_by::FixedByErr;
 use crate::provider::github::api::get_is_merged::IsMergedErr;
 use crate::provider::github::api::get_issue::IssueErr;
 use crate::provider::github::api::get_merged_details::MergeDetailsErr;
-use candid::{CandidType, Principal};
-use regex::Regex;
-use serde::{Deserialize, Serialize};
 
 use crate::provider::github::api::{
     get_issue::IssueResponse, get_merged_details::PrDetailsResponse,
@@ -50,18 +52,12 @@ pub async fn claim_impl(
     github_issue_id: IssueId,
     github_pr_id: PullRequestId,
 ) -> Option<ClaimError> {
-    use crate::{
-        bounty::api::state::Issue, provider::github::api::get_merged_details::MergeDetailsErr,
-    };
+    
+    use crate::bounty::api::state::Issue;
+    use crate::provider::github::api::get_merged_details::MergeDetailsErr;
 
-    let issue_opt: Option<Issue> = BOUNTY_STATE.with(|state| {
-        match state.borrow().as_ref() {
-            Some(bounty_state) => {
-                // Access the interested_contributors HashMap from the BountyState
-                return bounty_state.github_issues.get(&github_issue_id).cloned();
-            }
-            None => panic!("Bounty canister state not initialized"),
-        }
+    let issue_opt: Option<Issue> = state::with(|state| {
+        return state.github_issues.get(&github_issue_id).map(|i| i.clone());
     });
 
     match issue_opt {
@@ -94,16 +90,15 @@ pub async fn claim_impl(
 mod test_claim {
     use crate::bounty::api::accept::accept_impl;
     use crate::bounty::api::init::init_impl;
-    use crate::bounty::api::state::{Contributor, BOUNTY_STATE};
+    use crate::bounty::api::state::Contributor;
     use candid::Principal;
     use futures::executor::block_on;
-    use ic_cdk::api::time;
+    use crate::bounty::api::state;
 
     use super::{claim_impl, ClaimError, GithubClientMock};
 
     fn accept_contributor(
         principal: &str,
-        crypto_address: &str,
         github_issue_id: &str,
         github_pr_id: &str,
     ) {
@@ -111,7 +106,6 @@ mod test_claim {
         accept_impl(
             Contributor {
                 address: Principal::from_text(principal).unwrap(),
-                crypto_address: crypto_address.to_string(),
             },
             github_issue_id.to_string(),
             github_pr_id.to_string(),
@@ -125,25 +119,24 @@ mod test_claim {
         let github_pr_id_1 = "input-output-hk/hydra/pull/1";
         let github_pr_id_2 = "input-output-hk/hydra/pull/2";
 
-        let authority = Principal::from_text("rdmx6-jaaaa-aaaaa-aaadq-cai").unwrap();
+        let time = 100u64;
+        let caller = Principal::anonymous();
 
-        init_impl(authority);
+        init_impl(time, caller, None);
 
         accept_contributor(
             "mxzaz-hqaaa-aaaar-qaada-cai",
-            "contributor_address_1",
             github_issue_id,
             github_pr_id_1,
         );
         accept_contributor(
             "n5wcd-faaaa-aaaar-qaaea-cai",
-            "contributor_address_2",
             github_issue_id,
             github_pr_id_2,
         );
 
         let github_client = GithubClientMock {
-            principal: authority,
+            principal: caller,
         };
 
         let result = block_on(claim_impl(
@@ -161,21 +154,16 @@ mod test_claim {
             },
         }
 
-        BOUNTY_STATE.with(|state| {
-            let bounty_canister = state.borrow();
-            if let Some(ref bounty_canister) = *bounty_canister {
-                assert_eq!(
-                    bounty_canister
-                        .github_issues
-                        .get(&github_issue_id.to_string())
-                        .unwrap()
-                        .bounty
-                        .winner,
-                    Some(github_pr_id_2.to_string())
-                );
-            } else {
-                panic!("Bounty canister state not initialized");
-            }
+        state::with(|state| {
+            assert_eq!(
+                state
+                    .github_issues
+                    .get(&github_issue_id.to_string())
+                    .unwrap()
+                    .bounty
+                    .winner,
+                Some(github_pr_id_2.to_string())
+            );
         });
     }
 }

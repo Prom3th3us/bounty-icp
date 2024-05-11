@@ -1,23 +1,19 @@
-use super::state::BOUNTY_STATE;
 use crate::IssueId;
+
+use crate::bounty::api::state;
+
 pub type UnRegisterIssueError = ();
 
 pub type UnRegisterIssueReceipt = Option<UnRegisterIssueError>;
 
 pub fn unregister_issue_impl(github_issue_id: IssueId) -> UnRegisterIssueReceipt {
-    return BOUNTY_STATE.with(|state| {
-        if let Some(ref mut bounty_canister) = *state.borrow_mut() {
-            let issue_exists = bounty_canister.github_issues.contains_key(&github_issue_id);
-
-            if issue_exists {
-                // TODO: Check contributor it's registered and github_issue_id exists on github
-                // TODO check the issue is claimed, return error if not!
-                bounty_canister.github_issues.remove(&github_issue_id);
-            }
-            None
-        } else {
-            panic!("Bounty canister state not initialized")
+    return state::with_mut(|state| {
+        if state.is_issue_existed(&github_issue_id) {
+            // TODO: Check contributor it's registered and github_issue_id exists on github
+            // TODO check the issue is claimed, return error if not!
+            state.github_issues.remove(&github_issue_id);
         }
+        None
     });
 }
 
@@ -26,22 +22,22 @@ mod test_unregister_issue {
     use super::*;
     use crate::bounty::api::init::init_impl;
     use crate::bounty::api::register_issue::RegisterIssueError;
-    use crate::bounty::api::state::{Contributor, BOUNTY_STATE};
+    use crate::bounty::api::state::Contributor;
     use crate::register_issue_impl;
     use candid::{Nat, Principal};
     use num_bigint::BigUint;
 
     #[test]
     fn test_unregister_issue() {
-        let authority = Principal::anonymous();
+        let time = 100u64;
+        let caller = Principal::anonymous();
 
-        init_impl(authority);
+        init_impl(time, caller, None);
 
         let github_issue_id = "input-output-hk/hydra/issues/1370".to_string();
 
         let contributor = Contributor {
             address: Principal::anonymous(),
-            crypto_address: "0x1234".to_string(),
         };
 
         let bounty_amount: Nat = Nat(BigUint::from(100u32));
@@ -51,37 +47,29 @@ mod test_unregister_issue {
             contributor.clone(),
             github_issue_id.clone(),
             bounty_amount.clone(),
-            now
+            now,
         );
 
         assert!(r.is_none());
         let r2: Option<UnRegisterIssueError> = unregister_issue_impl(github_issue_id.clone());
         assert!(r2.is_none());
 
-        BOUNTY_STATE.with(|state| {
-            let bounty_canister = state.borrow();
-            if let Some(ref bounty_canister) = *bounty_canister {
-                assert!(bounty_canister
-                    .github_issues
-                    .get(&github_issue_id)
-                    .is_none());
-            } else {
-                panic!("Bounty canister state not initialized");
-            }
+        state::with(|state| {
+            assert!(!state.is_issue_existed(&github_issue_id));
         });
     }
 
     #[test]
     fn test_unregister_issue_twice() {
-        let authority = Principal::anonymous();
+        let time = 100u64;
+        let caller = Principal::anonymous();
 
-        init_impl(authority);
+        init_impl(time, caller, None);
 
         let github_issue_id = "input-output-hk/hydra/issues/1370".to_string();
 
         let contributor = Contributor {
             address: Principal::anonymous(),
-            crypto_address: "0x1234".to_string(),
         };
 
         let bounty_amount: Nat = Nat(BigUint::from(100u32));
@@ -91,7 +79,7 @@ mod test_unregister_issue {
             contributor.clone(),
             github_issue_id.clone(),
             bounty_amount.clone(),
-            now
+            now,
         );
 
         assert!(r.is_none());

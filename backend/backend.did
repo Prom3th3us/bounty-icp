@@ -81,7 +81,6 @@ type BountyAmount = nat32;
 
 type Contributor = record {
   address: principal;
-  crypto_address: text;
 };
 
 type DepositErr = variant {
@@ -107,7 +106,11 @@ type UnRegisterIssueErr = null;
 
 type UnRegisterIssueReceipt = opt UnRegisterIssueErr;
 
-service : (authority: principal) -> {
+type InitArgs = record {
+  custodians : opt vec principal;
+};
+
+service : (opt InitArgs) -> {
 
     // GitHub Service
     "get_issue": (GithubToken) -> (IssueReceipt);

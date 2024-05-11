@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
-use super::state::{IssueId, Time};
-use super::state::{Bounty, Contributor, Issue, BOUNTY_STATE};
-
 use candid::Nat;
+
+use crate::bounty::api::state;
+use crate::bounty::api::state::{Bounty, Contributor, Issue, IssueMetadata, IssueId, Time};
 
 pub type RegisterIssueError = ();
 
@@ -13,34 +13,30 @@ pub fn register_issue_impl(
     contributor: Contributor,
     github_issue_id: IssueId,
     amount: Nat,
-    now: Time
+    now: Time,
 ) -> RegisterIssueReceipt {
-    return BOUNTY_STATE.with(|state| {
-        if let Some(ref mut bounty_canister) = *state.borrow_mut() {
-            let issue_exists = bounty_canister.github_issues.contains_key(&github_issue_id);
-            if !issue_exists {
-                let github_issue = Issue {
-                    id: github_issue_id.clone(),
-                    maintainer: contributor,
-                    bounty: Bounty {
-                        amount: amount,
-                        winner: None,
-                        accepted_prs: HashMap::new(),
-                    },
+    return state::with_mut(|state| {
+        if !state.is_issue_existed(&github_issue_id) {
+            let github_issue = Issue {
+                id: github_issue_id.clone(),
+                maintainer: contributor.clone(),
+                bounty: Bounty {
+                    amount: amount,
+                    winner: None,
+                    accepted_prs: HashMap::new(),
+                },
+                metadata: IssueMetadata {
                     created_at: now,
                     updated_at: now,
-                    
-                };
-                // TODO: Check contributor it's registered and github_issue_id exists on github
-                // TODO check the issue is still open!
-                bounty_canister
-                    .github_issues
-                    .insert(github_issue_id.clone(), github_issue);
-            }
-            None
-        } else {
-            panic!("Bounty canister state not initialized")
+                }
+            };
+            // TODO: Check contributor it's registered and github_issue_id exists on github
+            // TODO check the issue is still open!
+            state
+                .github_issues
+                .insert(github_issue_id.clone(), github_issue);
         }
+        None
     });
 }
 
@@ -53,15 +49,15 @@ mod test_register_issue {
 
     #[test]
     fn test_register_issue() {
-        let authority = Principal::anonymous();
+        let time = 100u64;
+        let caller = Principal::anonymous();
 
-        init_impl(authority);
+        init_impl(time, caller, None);
 
         let github_issue_id = "input-output-hk/hydra/issues/1370".to_string();
 
         let contributor = Contributor {
             address: Principal::anonymous(),
-            crypto_address: "0x1234".to_string(),
         };
 
         let bounty_amount: Nat = Nat(BigUint::from(100u32));
@@ -71,29 +67,21 @@ mod test_register_issue {
 
         assert!(r.is_none());
 
-        BOUNTY_STATE.with(|state| {
-            let bounty_canister = state.borrow();
-            if let Some(ref bounty_canister) = *bounty_canister {
-                assert!(bounty_canister
-                    .github_issues
-                    .get(&github_issue_id)
-                    .is_some());
-            } else {
-                panic!("Bounty canister state not initialized");
-            }
+        state::with(|state| {
+            assert!(state.is_issue_existed(&github_issue_id));
         });
     }
     #[test]
     fn test_cant_register_issue_twice() {
-        let authority = Principal::anonymous();
+        let time = 100u64;
+        let caller = Principal::anonymous();
 
-        init_impl(authority);
+        init_impl(time, caller, None);
 
         let github_issue_id = "input-output-hk/hydra/issues/1370".to_string();
 
         let contributor = Contributor {
             address: Principal::anonymous(),
-            crypto_address: "0x1234".to_string(),
         };
 
         let bounty_amount: Nat = Nat(BigUint::from(100u32));
@@ -103,7 +91,7 @@ mod test_register_issue {
             contributor.clone(),
             github_issue_id.clone(),
             bounty_amount.clone(),
-            now
+            now,
         );
 
         assert!(r.is_none());
@@ -112,7 +100,7 @@ mod test_register_issue {
             contributor.clone(),
             github_issue_id.clone(),
             bounty_amount.clone(),
-            now
+            now,
         );
 
         assert!(r2.is_none());
