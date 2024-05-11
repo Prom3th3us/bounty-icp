@@ -4,7 +4,10 @@
       "candid": "backend/backend.did",
       "package": "backend",
       "type": "rust",
-      "dependencies": ["icrc1_ledger"]
+      "dependencies": ["icrc1_ledger"],
+      "declarations": {
+        "node_compatibility": true
+      }
     },
     "identity": {
       "type": "custom",
