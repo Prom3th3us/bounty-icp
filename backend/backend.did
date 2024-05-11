@@ -131,6 +131,7 @@ service : (opt InitArgs) -> {
     // Bounty Service
     "healthcheck": () -> (text);
     "accept": (Contributor, GithubIssueId, GithubPullRequestId) -> (AcceptReceipt);
+    
     "deposit": () -> (DepositReceipt);
     "register_issue": (Contributor, GithubIssueId, BountyAmount) -> (RegisterIssueReceipt);
     "unregister_issue": (GithubIssueId) -> (UnRegisterIssueReceipt);
