@@ -40,8 +40,10 @@ use bounty::api::register_issue::{register_issue_impl, RegisterIssueReceipt};
 use bounty::api::state::{Contributor, IssueId, PullRequestId, InitArgs};
 use bounty::api::unregister_issue::{unregister_issue_impl, UnRegisterIssueReceipt};
 
+use crate::bounty::api::state::is_canister_custodian_guard;
+
 // GITHUB SERVICE
-#[ic_cdk::update]
+#[ic_cdk::update(guard=is_canister_custodian_guard)]
 async fn get_issue(github_token: String) -> Result<IssueResponse, IssueErr> {
     let owner = "input-output-hk".to_string();
     let repo = "hydra".to_string();
@@ -54,7 +56,7 @@ async fn get_issue(github_token: String) -> Result<IssueResponse, IssueErr> {
     return client.get_issue(issue_nbr).await;
 }
 
-#[ic_cdk::update]
+#[ic_cdk::update(guard=is_canister_custodian_guard)]
 async fn get_fixed_by(github_token: String) -> Result<String, FixedByErr> {
     let owner = "input-output-hk".to_string();
     let repo = "hydra".to_string();
@@ -67,7 +69,7 @@ async fn get_fixed_by(github_token: String) -> Result<String, FixedByErr> {
     return client.get_fixed_by(issue_nbr).await;
 }
 
-#[ic_cdk::update]
+#[ic_cdk::update(guard=is_canister_custodian_guard)]
 async fn get_is_merged(github_token: String) -> Result<String, IsMergedErr> {
     let owner = "input-output-hk".to_string();
     let repo = "hydra".to_string();
@@ -80,7 +82,7 @@ async fn get_is_merged(github_token: String) -> Result<String, IsMergedErr> {
     return client.get_is_merged(pr_nbr).await;
 }
 
-#[ic_cdk::update]
+#[ic_cdk::update(guard=is_canister_custodian_guard)]
 async fn get_merged_details(github_token: String) -> Result<PrDetailsResponse, MergeDetailsErr> {
     let owner = "input-output-hk".to_string();
     let repo = "hydra".to_string();
@@ -99,7 +101,7 @@ fn init(args: Option<InitArgs>) -> () {
     init_impl(time(), caller(), args);
 }
 
-#[ic_cdk::update]
+#[ic_cdk::update(guard=is_canister_custodian_guard)]
 fn accept(
     contributor: Contributor,
     github_issue_id: IssueId,
@@ -108,17 +110,17 @@ fn accept(
     return accept_impl(contributor, github_issue_id, github_pr_id, time());
 }
 
-#[ic_cdk::update]
+#[ic_cdk::update(guard=is_canister_custodian_guard)]
 async fn deposit() -> DepositReceipt {
     return deposit_impl().await;
 }
 
-#[ic_cdk::update]
+#[ic_cdk::update(guard=is_canister_custodian_guard)]
 async fn healthcheck() -> String {
     return "OK".to_string();
 }
 
-#[ic_cdk::update]
+#[ic_cdk::update(guard=is_canister_custodian_guard)]
 fn register_issue(
     contributor: Contributor,
     github_issue_id: IssueId,
@@ -127,7 +129,7 @@ fn register_issue(
     return register_issue_impl(contributor, github_issue_id, amount, time());
 }
 
-#[ic_cdk::update]
+#[ic_cdk::update(guard=is_canister_custodian_guard)]
 fn unregister_issue(github_issue_id: IssueId) -> UnRegisterIssueReceipt {
     return unregister_issue_impl(github_issue_id);
 }

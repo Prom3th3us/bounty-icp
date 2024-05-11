@@ -125,3 +125,14 @@ impl BountyState {
             .ok_or_else(|| "Caller is not an custodian of canister".into())
     }
 }
+
+pub fn is_canister_custodian_guard() -> Result<(), String> {
+    self::with(|state| {
+        state
+            .metadata()
+            .custodians
+            .contains(&ic_cdk::caller())
+            .then_some(())
+            .ok_or_else(|| "Caller is not an custodian of canister".into())
+    })
+}
