@@ -140,7 +140,8 @@ async fn deposit() -> DepositReceipt {
     return deposit_impl().await;
 }
 
-#[ic_cdk::update(guard=is_canister_custodian_guard)]
+// #[ic_cdk::update(guard=is_canister_custodian_guard)]
+#[ic_cdk::update]
 async fn healthcheck() -> String {
     return "OK".to_string();
 }

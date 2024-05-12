@@ -1,4 +1,29 @@
-import * as express from "express"
+import * as express from 'express'
+import fetch from 'isomorphic-fetch'
+import { HttpAgent } from '@dfinity/agent'
+import { identity } from './identity.js'
+import { canisterId, createActor } from '../../../../src/declarations/backend/index.js'
+
+// Require syntax is needed for JSON file imports
+import { createRequire } from 'node:module'
+const require = createRequire(import.meta.url)
+// For the sake of this example, which will focus on local development, 
+// you will simply read it from the local canister_ids.json file.
+// TODO: Install dotenv and configure it to read from hidden .env
+const localCanisterIds = require('../../../../.dfx/local/canister_ids.json')
+
+// Use `process.env` if available provoded, or fall back to local
+const effectiveCanisterId =
+  canisterId?.toString() ?? localCanisterIds.backend.local
+
+const agent = new HttpAgent({
+  identity: await identity,
+  // mainnet: https://icp-api.io
+  host: 'http://127.0.0.1:4943',
+  fetch
+})
+
+const actor = createActor(effectiveCanisterId, { agent })
 
 /**
  * @param {import('probot').Probot} app
@@ -74,9 +99,8 @@ const bountyApp = (app, options) => {
 
   // Add a new route
   router.get('/healthcheck', async (req, res) => {
-    console.log("HERE")
-    // let result = await actor.healthcheck()
-    res.send("OK")
+    let result = await actor.healthcheck()
+    res.send(result)
   })
 }
 
