@@ -1,7 +1,10 @@
+import * as express from "express"
+
 /**
  * @param {import('probot').Probot} app
+ * @param {import('probot').ApplicationFunctionOptions} options
  */
-module.exports = (app) => {
+const bountyApp = (app, options) => {
   app.log.info('Yay! The app was loaded!')
 
   // Listen for commands on issue comments
@@ -55,11 +58,27 @@ module.exports = (app) => {
 
   // Log any event that the app receives
   app.onAny(async (context) => {
-    app.log.info({ event: context.name, action: context.payload.action })
+    app.log.info({ event: context.name, payload: context.payload })
   })
 
   // Log errors
   app.onError(async (error) => {
     app.log.error(error)
   })
+
+  // Get an express router to expose new HTTP endpoints
+  const router = options.getRouter('/bounty')
+
+  // Use any middleware
+  router.use(express.static('public'))
+
+  // Add a new route
+  router.get('/healthcheck', async (req, res) => {
+    console.log("HERE")
+    // let result = await actor.healthcheck()
+    res.send("OK")
+  })
 }
+
+export default bountyApp
+

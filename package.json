@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Offchain bounty",
   "keywords": [],
+  "type": "module",
   "workspaces": ["offchain/github"],
   "scripts": {
     "clean": "find . -name 'node_modules' -type d -prune -exec rm -rf '{}' +",
