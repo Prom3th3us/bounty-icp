@@ -1,28 +1,45 @@
-const { suite } = require('uvu')
-const assert = require('uvu/assert')
+import { suite } from 'uvu'
+import * as assert from 'uvu/assert'
 
-const nock = require('nock')
+import nock from 'nock'
 nock.disableNetConnect()
 
-const { Probot, ProbotOctokit } = require('probot')
+import { Server, Probot, ProbotOctokit } from 'probot'
 
-const app = require('../main/app')
+import app from '../main/app.js'
 
 let probot
+let server
 const test = suite('app')
-test.before.each(() => {
-  probot = new Probot({
-    // simple authentication as alternative to appId/privateKey
-    githubToken: 'test',
-    // disable logs
-    logLevel: 'warn',
-    // disable request throttling and retries
-    Octokit: ProbotOctokit.defaults({
-      throttle: { enabled: false },
-      retry: { enabled: false }
+async function startServer() {
+  server = new Server({
+    port: 8080,
+    Probot: Probot.defaults({
+      // simple authentication as alternative to appId/privateKey
+      githubToken: 'test',
+      // disable logs
+      logLevel: 'warn',
+      // disable request throttling and retries
+      Octokit: ProbotOctokit.defaults({
+        throttle: { enabled: false },
+        retry: { enabled: false }
+      })
     })
   })
-  probot.load(app)
+
+  await server.load(app);
+
+  server.start();
+
+  probot = server.probotApp;
+}
+
+test.before(async () => {
+  await startServer()
+})
+
+test.after(async () => {
+  await server.stop()
 })
 
 test('receives /bounty command on issue comment', async function () {
