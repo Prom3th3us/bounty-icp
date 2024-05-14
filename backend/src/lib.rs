@@ -24,6 +24,7 @@ pub mod bounty {
     pub mod api {
         pub mod accept;
         pub mod claim;
+        pub mod decline;
         pub mod deposit;
         pub mod icrc1;
         pub mod init;
@@ -34,6 +35,7 @@ pub mod bounty {
 }
 
 use bounty::api::accept::{accept_impl, AcceptReceipt};
+use bounty::api::decline::{decline_impl, DeclineReceipt};
 use bounty::api::deposit::{deposit_impl, DepositReceipt};
 use bounty::api::init::init_impl;
 use bounty::api::register_issue::{register_issue_impl, RegisterIssueReceipt};
@@ -118,6 +120,15 @@ fn accept(
     github_pr_id: PullRequestId,
 ) -> AcceptReceipt {
     return accept_impl(github_user_id, github_issue_id, github_pr_id, time());
+}
+
+#[ic_cdk::update(guard=is_canister_custodian_guard)]
+fn decline(
+    github_user_id: UserId,
+    github_issue_id: IssueId,
+    github_pr_id: PullRequestId,
+) -> DeclineReceipt {
+    return decline_impl(github_user_id, github_issue_id, github_pr_id);
 }
 
 #[ic_cdk::update(guard=is_canister_custodian_guard)]

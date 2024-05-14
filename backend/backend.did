@@ -94,6 +94,12 @@ type AcceptErr = variant {
 
 type AcceptReceipt = opt AcceptErr;
 
+type DeclineErr = variant {
+  IssueNotFound : record { GithubIssueId };
+};
+
+type DeclineReceipt = opt DeclineErr;
+
 type RegisterIssueErr = null;
 
 type RegisterIssueReceipt = opt RegisterIssueErr;
@@ -130,6 +136,7 @@ service : (opt InitArgs) -> {
     // Bounty Service
     "healthcheck": () -> (text);
     "accept": (UserId, GithubIssueId, GithubPullRequestId) -> (AcceptReceipt);
+    "decline":(UserId, GithubIssueId, GithubPullRequestId) -> (DeclineReceipt);
     "deposit": () -> (DepositReceipt);
     "register_issue": (UserId, GithubIssueId, BountyAmount) -> (RegisterIssueReceipt);
     "unregister_issue": (UserId, GithubIssueId) -> (UnRegisterIssueReceipt);
