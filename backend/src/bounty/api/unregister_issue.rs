@@ -1,14 +1,27 @@
-use crate::bounty::api::state;
-use crate::bounty::api::state::{UserId, IssueId};
+use candid::CandidType;
+use serde::{Deserialize, Serialize};
 
-pub type UnRegisterIssueError = ();
+use crate::bounty::api::state;
+use crate::bounty::api::state::{IssueId, UserId};
+
+#[derive(Debug, Serialize, Deserialize, CandidType)]
+pub enum UnRegisterIssueError {
+    UserNotFound { github_user_id: UserId },
+}
 
 pub type UnRegisterIssueReceipt = Option<UnRegisterIssueError>;
 
-pub fn unregister_issue_impl(github_user_id: UserId, github_issue_id: IssueId) -> UnRegisterIssueReceipt {
+pub fn unregister_issue_impl(
+    github_user_id: UserId,
+    github_issue_id: IssueId,
+) -> UnRegisterIssueReceipt {
     return state::with_mut(|state| {
+        // First if check contributor it's registered
+        if !state.is_user_existed(&github_user_id) {
+            return Some(UnRegisterIssueError::UserNotFound { github_user_id });
+        }
+
         if state.is_issue_existed(&github_issue_id) {
-            // TODO: Check contributor it's registered
             // TODO check the issue is claimed, return error if not!
             state.github_issues.remove(&github_issue_id);
         }
@@ -19,9 +32,10 @@ pub fn unregister_issue_impl(github_user_id: UserId, github_issue_id: IssueId) -
 #[cfg(test)]
 mod test_unregister_issue {
     use super::*;
-    use crate::bounty::api::init::init_impl;
     use crate::bounty::api::register_issue::RegisterIssueError;
     use crate::register_issue_impl;
+    use crate::users::api::register_user::register_user_impl;
+    use crate::{bounty::api::init::init_impl, users::api::register_user::RegisterUserError};
     use candid::{Nat, Principal};
     use num_bigint::BigUint;
 
@@ -38,6 +52,10 @@ mod test_unregister_issue {
 
         let bounty_amount: Nat = Nat(BigUint::from(100u32));
 
+        //Register github_user_id first, if not registered will fail with UserNotFound
+        let ru1: Option<RegisterUserError> = register_user_impl(github_user_id.clone(), time);
+        assert!(ru1.is_none());
+
         let now = 100u64;
         let r: Option<RegisterIssueError> = register_issue_impl(
             github_user_id.clone(),
@@ -47,7 +65,8 @@ mod test_unregister_issue {
         );
 
         assert!(r.is_none());
-        let r2: Option<UnRegisterIssueError> = unregister_issue_impl(github_user_id.clone(), github_issue_id.clone());
+        let r2: Option<UnRegisterIssueError> =
+            unregister_issue_impl(github_user_id.clone(), github_issue_id.clone());
         assert!(r2.is_none());
 
         state::with(|state| {
@@ -68,6 +87,10 @@ mod test_unregister_issue {
 
         let bounty_amount: Nat = Nat(BigUint::from(100u32));
 
+        //Register github_user_id first, if not registered will fail with UserNotFound
+        let ru1: Option<RegisterUserError> = register_user_impl(github_user_id.clone(), time);
+        assert!(ru1.is_none());
+
         let now = 100u64;
         let r: Option<RegisterIssueError> = register_issue_impl(
             github_user_id.clone(),
@@ -77,10 +100,12 @@ mod test_unregister_issue {
         );
 
         assert!(r.is_none());
-        let r2: Option<UnRegisterIssueError> = unregister_issue_impl(github_user_id.clone(), github_issue_id.clone());
+        let r2: Option<UnRegisterIssueError> =
+            unregister_issue_impl(github_user_id.clone(), github_issue_id.clone());
         assert!(r2.is_none());
 
-        let r3: Option<UnRegisterIssueError> = unregister_issue_impl(github_user_id.clone(), github_issue_id.clone());
+        let r3: Option<UnRegisterIssueError> =
+            unregister_issue_impl(github_user_id.clone(), github_issue_id.clone());
         assert!(r3.is_none());
     }
 }

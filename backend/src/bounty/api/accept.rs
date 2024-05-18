@@ -2,11 +2,17 @@ use candid::CandidType;
 use serde::{Deserialize, Serialize};
 
 use crate::bounty::api::state;
-use crate::bounty::api::state::{UserId, IssueId, PullRequest, PullRequestId, Time, PullRequestMetadata};
+use crate::bounty::api::state::{
+    IssueId, PullRequest, PullRequestId, PullRequestMetadata, Time, UserId,
+};
+
+use crate::register_user_impl;
+use crate::users::api::register_user::RegisterUserError;
 
 #[derive(Debug, Serialize, Deserialize, CandidType)]
 pub enum AcceptError {
-    IssueNotFound { github_issue_id: String },
+    IssueNotFound { github_issue_id: IssueId },
+    UserNotFound { github_user_id: UserId },
 }
 
 pub type AcceptReceipt = Option<AcceptError>;
@@ -18,6 +24,11 @@ pub fn accept_impl(
     now: Time,
 ) -> AcceptReceipt {
     return state::with_mut(|state| {
+        // First if check contributor it's registered
+        if !state.is_user_existed(&github_user_id) {
+            return Some(AcceptError::UserNotFound { github_user_id });
+        }
+
         if let Some(ref mut issue) = state.github_issues.get_mut(&github_issue_id) {
             if !issue.bounty.accepted_prs.contains_key(&github_pr_id) {
                 let pr = PullRequest {
@@ -26,9 +37,9 @@ pub fn accept_impl(
                     metadata: PullRequestMetadata {
                         accepted_at: now,
                         updated_at: now,
-                    }
+                    },
                 };
-                // TODO: Check contributor it's registered
+
                 // TODO check the issue is not claimed and still open!
                 issue.bounty.accepted_prs.insert(github_pr_id.clone(), pr);
             }
@@ -66,6 +77,10 @@ mod test_accept {
         let github_user_id = "prom3th3us".to_string();
 
         let bounty_amount: Nat = Nat(BigUint::from(100u32));
+
+        //Register user first, if not registered will fail with UserNotFound
+        let ru1: Option<RegisterUserError> = register_user_impl(github_user_id.clone(), time);
+        assert!(ru1.is_none());
 
         let now = 100u64;
         let r: Option<RegisterIssueError> =

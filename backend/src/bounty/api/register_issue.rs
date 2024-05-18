@@ -1,13 +1,17 @@
 use std::collections::HashMap;
 
-use candid::Nat;
+use candid::{CandidType, Nat};
+use serde::{Deserialize, Serialize};
 
 use crate::bounty::api::state;
-use crate::bounty::api::state::{Bounty, Issue, IssueMetadata, IssueId, Time};
+use crate::bounty::api::state::{Bounty, Issue, IssueId, IssueMetadata, Time};
 
 use super::state::UserId;
 
-pub type RegisterIssueError = ();
+#[derive(Debug, Serialize, Deserialize, CandidType)]
+pub enum RegisterIssueError {
+    UserNotFound { github_user_id: UserId },
+}
 
 pub type RegisterIssueReceipt = Option<RegisterIssueError>;
 
@@ -18,6 +22,12 @@ pub fn register_issue_impl(
     now: Time,
 ) -> RegisterIssueReceipt {
     return state::with_mut(|state| {
+        // TODO: Check contributor it's registered and github_issue_id exists on github
+        // First if check contributor it's registered
+        if !state.is_user_existed(&github_user_id) {
+            return Some(RegisterIssueError::UserNotFound { github_user_id });
+        }
+
         if !state.is_issue_existed(&github_issue_id) {
             let github_issue = Issue {
                 id: github_issue_id.clone(),
@@ -30,9 +40,8 @@ pub fn register_issue_impl(
                 metadata: IssueMetadata {
                     created_at: now,
                     updated_at: now,
-                }
+                },
             };
-            // TODO: Check contributor it's registered and github_issue_id exists on github
             // TODO check the issue is still open!
             // TODO check the contributor gave allowance >= amount to the canister!
             state
@@ -46,7 +55,10 @@ pub fn register_issue_impl(
 #[cfg(test)]
 mod test_register_issue {
     use super::*;
-    use crate::bounty::api::init::init_impl;
+    use crate::{
+        bounty::api::init::init_impl,
+        users::api::register_user::{register_user_impl, RegisterUserError},
+    };
     use candid::{Nat, Principal};
     use num_bigint::BigUint;
 
@@ -63,8 +75,16 @@ mod test_register_issue {
 
         let bounty_amount: Nat = Nat(BigUint::from(100u32));
 
-        let r: Option<RegisterIssueError> =
-            register_issue_impl(github_user_id, github_issue_id.clone(), bounty_amount, 100u64);
+        //Register user first, if not registered will fail with UserNotFound
+        let ru1: Option<RegisterUserError> = register_user_impl(github_user_id.clone(), time);
+        assert!(ru1.is_none());
+
+        let r: Option<RegisterIssueError> = register_issue_impl(
+            github_user_id,
+            github_issue_id.clone(),
+            bounty_amount,
+            100u64,
+        );
 
         assert!(r.is_none());
 
@@ -84,6 +104,10 @@ mod test_register_issue {
         let github_user_id = "prom3th3us".to_string();
 
         let bounty_amount: Nat = Nat(BigUint::from(100u32));
+
+        //Register user first, if not registered will fail with UserNotFound
+        let ru1: Option<RegisterUserError> = register_user_impl(github_user_id.clone(), time);
+        assert!(ru1.is_none());
 
         let now = 100u64;
         let r: Option<RegisterIssueError> = register_issue_impl(

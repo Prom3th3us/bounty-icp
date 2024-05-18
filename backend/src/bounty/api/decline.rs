@@ -5,10 +5,12 @@ use crate::bounty::api::state;
 use crate::bounty::api::state::{
     IssueId, PullRequest, PullRequestId, PullRequestMetadata, Time, UserId,
 };
+use crate::users::api::register_user::RegisterUserError;
 
 #[derive(Debug, Serialize, Deserialize, CandidType)]
 pub enum DeclineError {
-    IssueNotFound { github_issue_id: String },
+    IssueNotFound { github_issue_id: IssueId },
+    UserNotFound { github_user_id: UserId },
 }
 
 pub type DeclineReceipt = Option<DeclineError>;
@@ -19,6 +21,12 @@ pub fn decline_impl(
     github_pr_id: PullRequestId,
 ) -> DeclineReceipt {
     return state::with_mut(|state| {
+        // First if check owner it's registered
+        if !state.is_user_existed(&github_user_id_owner) {
+            return Some(DeclineError::UserNotFound {
+                github_user_id: github_user_id_owner,
+            });
+        }
         let issue_exists = state.is_issue_existed(&github_issue_id);
         if !issue_exists {
             return Some(DeclineError::IssueNotFound { github_issue_id });
@@ -29,7 +37,6 @@ pub fn decline_impl(
                 .accepted_prs
                 .contains_key(&github_pr_id.clone())
             {
-                // TODO: Check contributor it's registered
                 // TODO check the issue is not claimed and still open!
                 issue.bounty.accepted_prs.remove(&github_pr_id);
             }
@@ -43,10 +50,13 @@ pub fn decline_impl(
 #[cfg(test)]
 mod test_decline {
     use super::*;
-    use crate::bounty::api::{
-        accept::{accept_impl, AcceptError},
-        init::init_impl,
-        register_issue::{register_issue_impl, RegisterIssueError},
+    use crate::{
+        bounty::api::{
+            accept::{accept_impl, AcceptError},
+            init::init_impl,
+            register_issue::{register_issue_impl, RegisterIssueError},
+        },
+        users::api::register_user::register_user_impl,
     };
     use candid::{Nat, Principal};
     use num_bigint::BigUint;
@@ -69,6 +79,15 @@ mod test_decline {
         let bounty_amount: Nat = Nat(BigUint::from(100u32));
 
         let now = 100u64;
+
+        //Register github_user_id_owner first, if not registered will fail with UserNotFound
+        let ru1: Option<RegisterUserError> = register_user_impl(github_user_id_owner.clone(), time);
+        assert!(ru1.is_none());
+
+        //Register github_user_id_contributor first, if not registered will fail with UserNotFound
+        let ru2: Option<RegisterUserError> =
+            register_user_impl(github_user_id_contributor.clone(), time);
+        assert!(ru2.is_none());
 
         let r: Option<RegisterIssueError> = register_issue_impl(
             github_user_id_owner.clone(),
@@ -124,6 +143,15 @@ mod test_decline {
         let bounty_amount: Nat = Nat(BigUint::from(100u32));
 
         let now = 100u64;
+
+        //Register github_user_id_owner first, if not registered will fail with UserNotFound
+        let ru1: Option<RegisterUserError> = register_user_impl(github_user_id_owner.clone(), time);
+        assert!(ru1.is_none());
+
+        //Register github_user_id_contributor first, if not registered will fail with UserNotFound
+        let ru2: Option<RegisterUserError> =
+            register_user_impl(github_user_id_contributor.clone(), time);
+        assert!(ru2.is_none());
 
         let r: Option<RegisterIssueError> = register_issue_impl(
             github_user_id_owner.clone(),

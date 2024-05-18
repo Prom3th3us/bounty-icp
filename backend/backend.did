@@ -99,6 +99,7 @@ type DepositReceipt = variant {
 
 type AcceptErr = variant {
   IssueNotFound : record { GithubIssueId };
+  UserNotFound : record { UserId };
 };
 
 type AcceptReceipt = opt AcceptErr;
@@ -109,11 +110,15 @@ type DeclineErr = variant {
 
 type DeclineReceipt = opt DeclineErr;
 
-type RegisterIssueErr = null;
+type RegisterIssueErr = variant {
+  UserNotFound : record { UserId };
+};
 
 type RegisterIssueReceipt = opt RegisterIssueErr;
 
-type UnRegisterIssueErr = null;
+type UnRegisterIssueErr = variant {
+  UserNotFound : record { UserId };
+};
 
 type UnRegisterIssueReceipt = opt UnRegisterIssueErr;
 
