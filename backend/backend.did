@@ -36,6 +36,15 @@ type IsMergedReceipt = variant {
   Ok: text;
 };
 
+type UserExistsError = variant {
+  Rejected : record { error_message : text };
+};
+
+type UserExistsReceipt = variant {
+  Err: UserExistsError;
+  Ok: text;
+};
+
 type IssueErr = variant {
   Rejected : record { error_message : text };
 };
@@ -131,6 +140,7 @@ service : (opt InitArgs) -> {
     "get_issue": (GithubToken) -> (IssueReceipt);
     "get_fixed_by": (GithubToken) -> (FixedByReceipt);
     "get_is_merged": (GithubToken) -> (IsMergedReceipt);
+    "get_user_exists": (GithubToken) -> (UserExistsReceipt);
     "get_merged_details": (GithubToken) -> (MergeDetailsReceipt);
 
     // Bounty Service
