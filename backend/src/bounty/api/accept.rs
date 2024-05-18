@@ -6,9 +6,6 @@ use crate::bounty::api::state::{
     IssueId, PullRequest, PullRequestId, PullRequestMetadata, Time, UserId,
 };
 
-use crate::register_user_impl;
-use crate::users::api::register_user::RegisterUserError;
-
 #[derive(Debug, Serialize, Deserialize, CandidType)]
 pub enum AcceptError {
     IssueNotFound { github_issue_id: IssueId },
@@ -58,9 +55,12 @@ pub fn accept_impl(
 #[cfg(test)]
 mod test_accept {
     use super::*;
-    use crate::bounty::api::{
-        init::init_impl,
-        register_issue::{register_issue_impl, RegisterIssueError},
+    use crate::{
+        bounty::api::{
+            init::init_impl,
+            register_issue::{register_issue_impl, RegisterIssueError},
+        },
+        users::api::register_user::{register_user_impl, RegisterUserError},
     };
     use candid::{Nat, Principal};
     use num_bigint::BigUint;

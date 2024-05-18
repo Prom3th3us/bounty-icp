@@ -22,7 +22,7 @@ pub fn register_issue_impl(
     now: Time,
 ) -> RegisterIssueReceipt {
     return state::with_mut(|state| {
-        // TODO: Check contributor it's registered and github_issue_id exists on github
+        // TODO: Check github_issue_id exists on github
         // First if check contributor it's registered
         if !state.is_user_existed(&github_user_id) {
             return Some(RegisterIssueError::UserNotFound { github_user_id });
