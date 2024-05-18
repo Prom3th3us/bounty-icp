@@ -96,6 +96,18 @@ test-4: # install
 	echo "get_merged_details response:"; \
 	cat $$TMP_FILE; \
 	rm -f $$TMP_FILE
+	
+
+.PHONY: test-5
+.SILENT: test-5
+test-5: # install
+	# Call the backend canister to find if the user is registered or not on GitHub and capture the output
+	@echo "Calling get_user_exists on backend canister..."
+	@TMP_FILE=$$(mktemp); \
+	dfx canister call backend get_user_exists '("${GITHUB_TOKEN}")' > $$TMP_FILE; \
+	echo "get_user_exists response:"; \
+	cat $$TMP_FILE; \
+	rm -f $$TMP_FILE
 
 .PHONY: test
 .SILENT: test

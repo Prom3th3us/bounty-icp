@@ -7,6 +7,7 @@ pub mod provider {
             pub mod get_is_merged;
             pub mod get_issue;
             pub mod get_merged_details;
+            pub mod get_user_exists;
         }
         pub mod client;
         pub mod utils;
@@ -18,6 +19,7 @@ use provider::github::api::get_fixed_by::FixedByErr;
 use provider::github::api::get_is_merged::IsMergedErr;
 use provider::github::api::get_issue::{IssueErr, IssueResponse};
 use provider::github::api::get_merged_details::{MergeDetailsErr, PrDetailsResponse};
+use provider::github::api::get_user_exists::UserExistsError;
 use provider::github::client::{GithubClient, IGithubClient};
 
 pub mod bounty {
@@ -93,6 +95,19 @@ async fn get_merged_details(github_token: String) -> Result<PrDetailsResponse, M
         github_token,
     };
     return client.get_merged_details(pr_nbr).await;
+}
+
+#[ic_cdk::update(guard=is_canister_custodian_guard)]
+async fn get_user_exists(github_token: String) -> Result<String, UserExistsError> {
+    let owner = "input-output-hk".to_string();
+    let repo = "hydra".to_string();
+    let user_id = "daguis".to_string();
+    let client = GithubClient {
+        owner,
+        repo,
+        github_token,
+    };
+    return client.get_user_exists(user_id).await;
 }
 
 // BOUNTY SERVICE

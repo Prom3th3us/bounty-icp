@@ -9,6 +9,7 @@ use crate::provider::github::api::get_is_merged::IsMergedErr;
 use crate::provider::github::api::get_issue::IssueErr;
 use crate::provider::github::api::get_merged_details::MergeDetailsErr;
 
+use crate::provider::github::api::get_user_exists::UserExistsError;
 use crate::provider::github::api::{
     get_issue::IssueResponse, get_merged_details::PrDetailsResponse,
 };
@@ -43,6 +44,9 @@ impl IGithubClient for GithubClientMock {
     async fn get_merged_details(&self, pr_nbr: i32) -> Result<PrDetailsResponse, MergeDetailsErr> {
         todo!()
     }
+    async fn get_user_exists(&self, user_id: String) -> Result<String, UserExistsError> {
+        todo!()
+    }
 }
 
 // FIXME: remove this annotation after finishing draft impl.
@@ -52,7 +56,6 @@ pub async fn claim_impl(
     github_issue_id: IssueId,
     github_pr_id: PullRequestId,
 ) -> Option<ClaimError> {
-    
     use crate::bounty::api::state::Issue;
     use crate::provider::github::api::get_merged_details::MergeDetailsErr;
 
@@ -91,17 +94,13 @@ mod test_claim {
     use crate::bounty::api::accept::accept_impl;
     use crate::bounty::api::init::init_impl;
     use crate::bounty::api::state::Contributor;
+    use crate::bounty::api::state;
     use candid::Principal;
     use futures::executor::block_on;
-    use crate::bounty::api::state;
 
     use super::{claim_impl, ClaimError, GithubClientMock};
 
-    fn accept_contributor(
-        principal: &str,
-        github_issue_id: &str,
-        github_pr_id: &str,
-    ) {
+    fn accept_contributor(principal: &str, github_issue_id: &str, github_pr_id: &str) {
         let now = 100u64;
         accept_impl(
             Contributor {
@@ -109,7 +108,7 @@ mod test_claim {
             },
             github_issue_id.to_string(),
             github_pr_id.to_string(),
-            now
+            now,
         );
     }
 
@@ -135,9 +134,7 @@ mod test_claim {
             github_pr_id_2,
         );
 
-        let github_client = GithubClientMock {
-            principal: caller,
-        };
+        let github_client = GithubClientMock { principal: caller };
 
         let result = block_on(claim_impl(
             &github_client,
