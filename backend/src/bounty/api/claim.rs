@@ -93,8 +93,8 @@ pub async fn claim_impl(
 mod test_claim {
     use crate::bounty::api::accept::accept_impl;
     use crate::bounty::api::init::init_impl;
-    use crate::bounty::api::state::Contributor;
     use crate::bounty::api::state;
+    use crate::bounty::api::state::Contributor;
     use candid::Principal;
     use futures::executor::block_on;
 
