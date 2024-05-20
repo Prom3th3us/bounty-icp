@@ -38,8 +38,6 @@ impl IGithubClient for GithubClient {
     }
     async fn get_user_exists(&self, user_id: String) -> Result<String, UserExistsError> {
         get_user_exists_impl(
-            self.owner.clone(),
-            self.repo.clone(),
             user_id,
             self.github_token.clone(),
         )

@@ -13,8 +13,6 @@ pub enum UserExistsError {
 
 //https://api.github.com/users/daguis
 pub async fn get_user_exists_impl(
-    owner: String,
-    repo: String,
     user_id: String,
     github_token: String,
 ) -> Result<String, UserExistsError> {
