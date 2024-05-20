@@ -37,7 +37,13 @@ impl IGithubClient for GithubClient {
         get_is_merged_impl(self.owner.clone(), self.repo.clone(), pr_nbr).await
     }
     async fn get_user_exists(&self, user_id: String) -> Result<String, UserExistsError> {
-        get_user_exists_impl(self.github_token.clone(), user_id.clone()).await
+        get_user_exists_impl(
+            self.owner.clone(),
+            self.repo.clone(),
+            user_id,
+            self.github_token.clone(),
+        )
+        .await
     }
     async fn get_merged_details(&self, pr_nbr: i32) -> Result<PrDetailsResponse, MergeDetailsErr> {
         get_merge_details_impl(
