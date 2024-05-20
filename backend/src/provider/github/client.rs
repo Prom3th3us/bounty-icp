@@ -2,6 +2,7 @@ use super::api::get_fixed_by::{get_fixed_by_impl, FixedByErr};
 use super::api::get_is_merged::{get_is_merged_impl, IsMergedErr};
 use super::api::get_issue::{get_issue_impl, IssueErr, IssueResponse};
 use super::api::get_merged_details::{get_merge_details_impl, MergeDetailsErr, PrDetailsResponse};
+use super::api::get_user_exists::{get_user_exists_impl, UserExistsError};
 
 pub struct GithubClient {
     pub owner: String,
@@ -15,6 +16,7 @@ pub trait IGithubClient {
     async fn get_fixed_by(&self, issue_nbr: i32) -> Result<String, FixedByErr>;
     async fn get_is_merged(&self, pr_nbr: i32) -> Result<String, IsMergedErr>;
     async fn get_merged_details(&self, pr_nbr: i32) -> Result<PrDetailsResponse, MergeDetailsErr>;
+    async fn get_user_exists(&self, user_id: String) -> Result<String, UserExistsError>;
 }
 
 #[async_trait::async_trait]
@@ -33,6 +35,13 @@ impl IGithubClient for GithubClient {
     }
     async fn get_is_merged(&self, pr_nbr: i32) -> Result<String, IsMergedErr> {
         get_is_merged_impl(self.owner.clone(), self.repo.clone(), pr_nbr).await
+    }
+    async fn get_user_exists(&self, user_id: String) -> Result<String, UserExistsError> {
+        get_user_exists_impl(
+            user_id,
+            self.github_token.clone(),
+        )
+        .await
     }
     async fn get_merged_details(&self, pr_nbr: i32) -> Result<PrDetailsResponse, MergeDetailsErr> {
         get_merge_details_impl(
