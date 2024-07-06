@@ -59,22 +59,18 @@ pub async fn claim_impl(
     github_pr_id: PullRequestId,
 ) -> Option<ClaimError> {
     use crate::bounty::api::state::Issue;
-    use crate::provider::github::api::get_merged_details::MergeDetailsErr;
 
     let issue_opt: Option<Issue> = state::with(|state| {
-        return state.github_issues.get(&github_issue_id).map(|i| i.clone());
+        state
+            .github_issues()
+            .get(&github_issue_id)
+            .map(|i| i.clone())
     });
 
     match issue_opt {
-        None => {
-            return Some(ClaimError::IssueNotFound {
-                github_issue_id: github_issue_id.clone(),
-            })
-        }
-        Some(issue) => match issue.bounty.accepted_prs.get(&github_pr_id) {
-            None => Some(ClaimError::PRNotAccepted {
-                github_pr_id: github_pr_id.clone(),
-            }),
+        None => Some(ClaimError::IssueNotFound { github_issue_id }),
+        Some(issue) => match issue.bounty().accepted_prs().get(&github_pr_id) {
+            None => Some(ClaimError::PRNotAccepted { github_pr_id }),
             Some(pull_request) => {
                 // TODO: unify GitHub errors
                 // FIXME: remove unwraps
@@ -154,11 +150,12 @@ mod test_claim {
         state::with(|state| {
             assert_eq!(
                 state
-                    .github_issues
-                    .get(&github_issue_id.to_string())
+                    .github_issues()
+                    .get(github_issue_id)
+                    .map(|issue| issue.bounty())
+                    .map(|bounty| bounty.winner())
                     .unwrap()
-                    .bounty
-                    .winner,
+                    .to_owned(),
                 Some(github_pr_id_2.to_string())
             );
         });
@@ -186,10 +183,10 @@ fn extract_regex<T: std::str::FromStr>(regex: &str, str: &str) -> Option<T> {
 
 #[cfg(test)]
 fn extract_pull_number(url: &str) -> Option<i32> {
-    return extract_regex(r"/pull/(\d+)", url);
+    extract_regex(r"/pull/(\d+)", url)
 }
 
 #[cfg(test)]
 fn extract_issue_number(url: &str) -> Option<i32> {
-    return extract_regex(r"/issues/(\d+)", url);
+    extract_regex(r"/issues/(\d+)", url)
 }

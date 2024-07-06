@@ -20,7 +20,7 @@ pub async fn deposit_impl() -> DepositReceipt {
     let icrc1_token_canister_id = Principal::from_text(MAINNET_ICRC1_LEDGER_CANISTER_ID)
         .expect("Wrong MAINNET_ICRC1_LEDGER_CANISTER_ID");
 
-    return deposit_icrc1(caller, icrc1_token_canister_id).await;
+    deposit_icrc1(caller, icrc1_token_canister_id).await
 }
 
 async fn deposit_icrc1(
@@ -63,11 +63,11 @@ async fn deposit_icrc1(
         created_at_time: None,
     };
 
-    return icrc1_token
+    icrc1_token
         .transfer_from(transfer_from_args)
         .await
         .map(|_| available)
         .map_err(|error| DepositErr::TransferFailure {
-            reason: error.to_string(),
-        });
+            reason: error.as_string(),
+        })
 }

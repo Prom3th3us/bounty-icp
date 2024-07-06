@@ -14,59 +14,167 @@ pub type Time = u64;
 
 #[derive(Debug, CandidType, Deserialize, Clone)]
 pub struct PullRequestMetadata {
-    pub accepted_at: Time,
-    pub updated_at: Time,
+    accepted_at: Time,
+    updated_at: Time,
+}
+
+impl PullRequestMetadata {
+    pub fn new(accepted_at: Time, updated_at: Time) -> Self {
+        PullRequestMetadata {
+            accepted_at,
+            updated_at,
+        }
+    }
 }
 
 #[derive(Debug, CandidType, Deserialize, Clone)]
 pub struct PullRequest {
-    pub id: PullRequestId,
-    pub contributor: UserId,
-    pub metadata: PullRequestMetadata,
+    id: PullRequestId,
+    contributor: UserId,
+    metadata: PullRequestMetadata,
+}
+
+impl PullRequest {
+    pub fn new(id: &PullRequestId, contributor: &UserId, metadata: PullRequestMetadata) -> Self {
+        PullRequest {
+            id: id.to_string(),
+            contributor: contributor.to_string(),
+            metadata,
+        }
+    }
 }
 
 #[derive(Debug, CandidType, Deserialize, Clone)]
 pub struct Bounty {
-    pub amount: Nat,
-    pub winner: Option<PullRequestId>,
-    pub accepted_prs: HashMap<PullRequestId, PullRequest>,
+    amount: Nat,
+    winner: Option<PullRequestId>,
+    accepted_prs: HashMap<PullRequestId, PullRequest>,
+}
+
+impl Bounty {
+    pub fn new(
+        amount: Nat,
+        winner: Option<PullRequestId>,
+        accepted_prs: HashMap<PullRequestId, PullRequest>,
+    ) -> Self {
+        Bounty {
+            amount,
+            winner,
+            accepted_prs,
+        }
+    }
+
+    pub fn winner(&self) -> &Option<PullRequestId> {
+        &self.winner
+    }
+
+    pub fn accepted_prs(&self) -> &HashMap<PullRequestId, PullRequest> {
+        &self.accepted_prs
+    }
+
+    pub fn insert_pull_request(&mut self, github_pr_id: PullRequestId, pr: PullRequest) {
+        self.accepted_prs.insert(github_pr_id, pr);
+    }
+
+    pub fn remove_pull_request(&mut self, github_pr_id: &PullRequestId) {
+        self.accepted_prs.remove(github_pr_id);
+    }
 }
 
 #[derive(Debug, CandidType, Deserialize, Clone)]
 pub struct IssueMetadata {
-    pub created_at: Time,
-    pub updated_at: Time,
+    created_at: Time,
+    updated_at: Time,
+}
+
+impl IssueMetadata {
+    pub fn new(created_at: Time, updated_at: Time) -> Self {
+        IssueMetadata {
+            created_at,
+            updated_at,
+        }
+    }
 }
 
 #[derive(Debug, CandidType, Deserialize, Clone)]
 pub struct Issue {
-    pub id: IssueId,
-    pub maintainer: UserId,
-    pub bounty: Bounty,
-    pub metadata: IssueMetadata,
+    id: IssueId,
+    maintainer: UserId,
+    bounty: Bounty,
+    metadata: IssueMetadata,
+}
+
+impl Issue {
+    pub fn new(id: &IssueId, maintainer: &UserId, bounty: Bounty, metadata: IssueMetadata) -> Self {
+        Issue {
+            id: id.to_string(),
+            maintainer: maintainer.to_string(),
+            bounty,
+            metadata,
+        }
+    }
+
+    pub fn bounty(&self) -> &Bounty {
+        &self.bounty
+    }
+
+    pub fn bounty_mut(&mut self) -> &mut Bounty {
+        &mut self.bounty
+    }
 }
 
 #[derive(Debug, CandidType, Deserialize, Default)]
 pub struct Metadata {
-    pub custodians: HashSet<Principal>,
-    pub created_at: Time,
-    pub upgraded_at: Time,
+    custodians: HashSet<Principal>,
+    created_at: Time,
+    upgraded_at: Time,
+}
+
+impl Metadata {
+    pub fn insert_custodian(&mut self, custodian: Principal) {
+        self.custodians.insert(custodian);
+    }
 }
 
 #[derive(Debug, CandidType, Deserialize, Default)]
 pub struct GitHubUser {
-    pub user_id: UserId,
-    pub wallet: Option<Principal>,
-    pub created_at: Time,
-    pub updated_at: Time,
+    user_id: UserId,
+    wallet: Option<Principal>,
+    created_at: Time,
+    updated_at: Time,
+}
+
+impl GitHubUser {
+    pub fn new(
+        user_id: &str,
+        wallet: Option<Principal>,
+        created_at: Time,
+        updated_at: Time,
+    ) -> Self {
+        GitHubUser {
+            user_id: user_id.to_string(),
+            wallet,
+            created_at,
+            updated_at,
+        }
+    }
+
+    pub fn wallet(&self) -> Option<Principal> {
+        self.wallet
+    }
+
+    pub fn set_wallet(&mut self, wallet: Option<Principal>) {
+        self.wallet = wallet
+    }
 }
 
 #[derive(Debug, CandidType, Deserialize, Default)]
 pub struct BountyState {
-    pub metadata: Metadata,
-    pub github_issues: HashMap<IssueId, Issue>,
-    pub github_known_users: HashMap<UserId, GitHubUser>,
+    metadata: Metadata,
+    github_issues: HashMap<IssueId, Issue>,
+    github_known_users: HashMap<UserId, GitHubUser>,
 }
+
 // Define thread-local storage for the bounty canister state
 // WASM is single-threaded by nature. [RefCell] and [thread_local!] are used despite being not totally safe primitives.
 // This is to ensure that the canister state can be used throughout.
@@ -89,7 +197,13 @@ pub fn with_mut<T, F: FnOnce(&mut BountyState) -> T>(f: F) -> T {
 
 #[derive(Debug, CandidType, Deserialize)]
 pub struct InitArgs {
-    pub custodians: Option<HashSet<Principal>>,
+    custodians: Option<HashSet<Principal>>,
+}
+
+impl InitArgs {
+    pub fn get_custodians(&self) -> &Option<HashSet<Principal>> {
+        &self.custodians
+    }
 }
 
 impl BountyState {
@@ -100,11 +214,11 @@ impl BountyState {
         args: Option<InitArgs>,
     ) {
         let metadata = self.metadata_mut();
-        metadata.custodians.insert(default_custodian);
+        metadata.insert_custodian(default_custodian);
         if let Some(args) = args {
-            if let Some(custodians) = args.custodians {
-                for custodians in custodians {
-                    metadata.custodians.insert(custodians);
+            if let Some(custodians) = args.get_custodians() {
+                for custodian in custodians {
+                    metadata.insert_custodian(*custodian);
                 }
             }
         }
@@ -112,24 +226,53 @@ impl BountyState {
         metadata.upgraded_at = time;
     }
 
+    pub fn bounty(&self) -> &Metadata {
+        &self.metadata
+    }
+
     pub fn metadata(&self) -> &Metadata {
         &self.metadata
     }
 
+    // REVIEW
     pub fn metadata_mut(&mut self) -> &mut Metadata {
         &mut self.metadata
+    }
+
+    pub fn github_known_users(&self) -> &HashMap<UserId, GitHubUser> {
+        &self.github_known_users
     }
 
     pub fn github_known_users_mut(&mut self) -> &mut HashMap<UserId, GitHubUser> {
         &mut self.github_known_users
     }
 
-    pub fn is_issue_existed(&self, github_issue_id: &IssueId) -> bool {
+    pub fn insert_github_user(&mut self, github_user_id: String, github_user: GitHubUser) {
+        self.github_known_users.insert(github_user_id, github_user);
+    }
+
+    pub fn is_user_existed(&self, github_user_id: &str) -> bool {
+        self.github_known_users.contains_key(github_user_id)
+    }
+
+    pub fn github_issues(&self) -> &HashMap<IssueId, Issue> {
+        &self.github_issues
+    }
+
+    pub fn github_issues_mut(&mut self) -> &mut HashMap<IssueId, Issue> {
+        &mut self.github_issues
+    }
+
+    pub fn insert_github_issue(&mut self, github_issue_id: String, github_issue: Issue) {
+        self.github_issues.insert(github_issue_id, github_issue);
+    }
+
+    pub fn is_issue_existed(&self, github_issue_id: &str) -> bool {
         self.github_issues.contains_key(github_issue_id)
     }
 
-    pub fn is_user_existed(&self, github_user_id: &UserId) -> bool {
-        self.github_known_users.contains_key(github_user_id)
+    pub fn remove_github_issue(&mut self, github_issue_id: &str) {
+        self.github_issues.remove(github_issue_id);
     }
 
     pub fn init(&mut self, time: Time, caller: Principal, args: Option<InitArgs>) {

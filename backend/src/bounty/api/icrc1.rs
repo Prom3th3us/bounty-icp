@@ -1,7 +1,7 @@
-use serde::{Deserialize, Serialize};
 use candid::{CandidType, Nat, Principal};
 use ic_cdk::api::call::call;
 use ic_ledger_types::{Memo, Subaccount, Timestamp};
+use serde::{Deserialize, Serialize};
 
 type BlockIndex = Nat;
 
@@ -21,7 +21,7 @@ pub enum TransferFromError {
 }
 
 impl TransferFromError {
-    pub fn to_string(&self) -> String {
+    pub fn as_string(&self) -> String {
         match self {
             TransferFromError::BadFee { expected_fee } => format!("Bad fee: {}", expected_fee),
             TransferFromError::BadBurn { min_burn_amount } => {
@@ -34,10 +34,9 @@ impl TransferFromError {
                 format!("Insufficient allowance: {}", allowance)
             }
             TransferFromError::TooOld => String::from("Transaction too old"),
-            TransferFromError::CreatedInFuture { ledger_time } => format!(
-                "Created in the future: {}",
-                ledger_time.timestamp_nanos.to_string()
-            ),
+            TransferFromError::CreatedInFuture { ledger_time } => {
+                format!("Created in the future: {}", ledger_time.timestamp_nanos)
+            }
             TransferFromError::TemporarilyUnavailable => {
                 String::from("Ledger temporarily unavailable")
             }
@@ -98,19 +97,19 @@ impl ICRC1 {
         let call_result: Result<(TransferFromResult,), _> =
             call(self.principal, "icrc2_transfer_from", (args,)).await;
 
-        return call_result.unwrap().0;
+        call_result.unwrap().0
     }
 
     pub async fn allowance(&self, args: AllowanceArgs) -> Allowance {
         let call_result: Result<(Allowance,), _> =
             call(self.principal, "icrc2_allowance", (args,)).await;
 
-        return call_result.unwrap().0;
+        call_result.unwrap().0
     }
 
     pub async fn get_fee(&self) -> Nat {
         let call_result: Result<(Nat,), _> = call(self.principal, "icrc1_fee", ()).await;
 
-        return call_result.unwrap().0;
+        call_result.unwrap().0
     }
 }

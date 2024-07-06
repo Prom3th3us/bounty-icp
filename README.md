@@ -27,12 +27,3 @@ dfx start --background
 # Deploys your canisters to the replica and generates your candid interface
 dfx deploy
 ```
-
-decline/unregister pr
-
-/*
-Map<GitHubUserAccount,Principal>
-usa guarda
-
-//que tu mismo plugin utilice la integracion con icp para
-*/

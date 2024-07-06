@@ -1,24 +1,27 @@
-use candid::Principal;
+use candid::{CandidType, Principal};
+use serde::{Deserialize, Serialize};
 
 use crate::bounty::api::state;
-
 use crate::bounty::api::state::UserId;
 
-pub type UpsertUserWalletError = ();
+#[derive(Debug, Serialize, Deserialize, CandidType, PartialEq)]
+pub enum UpsertUserWalletError {
+    UserNotFound,
+}
 
-pub type UpsertUserWalletReceipt = Option<UpsertUserWalletError>;
+pub type UpsertUserWalletReceipt = Result<(), UpsertUserWalletError>;
 
 pub fn upsert_user_wallet_impl(
     github_user_id: UserId,
     wallet: Option<Principal>,
 ) -> UpsertUserWalletReceipt {
-    return state::with_mut(|state| {
-        // TODO: return user not found error
-        if let Some(github_user) = state.github_known_users_mut().get_mut(&github_user_id) {
-            github_user.wallet = wallet;
-        }
-        None
-    });
+    state::with_mut(|state| {
+        state
+            .github_known_users_mut()
+            .get_mut(&github_user_id)
+            .ok_or(UpsertUserWalletError::UserNotFound)
+            .map(|github_user| github_user.set_wallet(wallet))
+    })
 }
 
 #[cfg(test)]
@@ -37,52 +40,48 @@ mod test_upsert_user_wallet {
 
         init_impl(time, caller, None);
 
-        let github_user_id = "prom3th3us".to_string();
+        let github_user_id = "prom3th3us";
 
         state::with(|state| {
-            assert!(!state.is_user_existed(&github_user_id));
+            assert!(!state.is_user_existed(github_user_id));
         });
 
-        let r: Option<RegisterUserError> = register_user_impl(github_user_id.clone(), time);
+        let r: Option<RegisterUserError> = register_user_impl(github_user_id.to_string(), time);
         assert!(r.is_none());
 
         let wallet = Principal::anonymous();
 
         state::with(|state| {
             assert!(state
-                .github_known_users
-                .get(&github_user_id)
-                .unwrap()
-                .wallet
+                .github_known_users()
+                .get(github_user_id)
+                .and_then(|gh_user| gh_user.wallet())
                 .is_none());
         });
 
-        let r: Option<UpsertUserWalletError> =
-            upsert_user_wallet_impl(github_user_id.clone(), Some(wallet));
-        assert!(r.is_none());
+        let r: UpsertUserWalletReceipt =
+            upsert_user_wallet_impl(github_user_id.to_string(), Some(wallet));
+        assert!(r.is_ok());
 
         state::with(|state| {
             assert_eq!(
                 state
-                    .github_known_users
-                    .get(&github_user_id)
-                    .unwrap()
-                    .wallet
+                    .github_known_users()
+                    .get(github_user_id)
+                    .and_then(|gh_user| gh_user.wallet())
                     .unwrap(),
                 wallet
             );
         });
 
-        let r2: Option<UpsertUserWalletError> =
-            upsert_user_wallet_impl(github_user_id.clone(), None);
-        assert!(r2.is_none());
+        let r2: UpsertUserWalletReceipt = upsert_user_wallet_impl(github_user_id.to_string(), None);
+        assert!(r2.is_ok());
 
         state::with(|state| {
             assert!(state
-                .github_known_users
-                .get(&github_user_id)
-                .unwrap()
-                .wallet
+                .github_known_users()
+                .get(github_user_id)
+                .and_then(|gh_user| gh_user.wallet())
                 .is_none());
         });
     }

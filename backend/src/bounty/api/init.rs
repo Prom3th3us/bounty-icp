@@ -3,7 +3,7 @@ use candid::Principal;
 use crate::bounty::api::state;
 use crate::bounty::api::state::{InitArgs, Time};
 
-pub fn init_impl(time: Time, caller: Principal, args: Option<InitArgs>) -> () {
+pub fn init_impl(time: Time, caller: Principal, args: Option<InitArgs>) {
     state::with_mut(|state| state.init(time, caller, args));
 }
 
