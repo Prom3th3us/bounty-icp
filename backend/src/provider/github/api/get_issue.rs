@@ -1,34 +1,34 @@
+use candid::CandidType;
 use ic_cdk::api::management_canister::http_request::{
     http_request, CanisterHttpRequestArgument, HttpMethod, HttpResponse,
 };
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use candid::CandidType;
-use serde::{Deserialize, Serialize};
-
-use super::super::utils::{github_api_host, mk_request_headers};
+use crate::provider::github;
+use github::utils::{github_api_host, mk_request_headers};
 
 #[derive(Debug, Serialize, Deserialize, CandidType)]
 pub enum IssueErr {
     Rejected { error_message: String },
 }
 
-// Define the IssueResponse struct to represent the transformed response
 #[derive(Debug, Serialize, Deserialize, CandidType)]
 pub struct IssueResponse {
-    pub state: Option<String>,
-    pub login: Option<String>,
-    pub id: Option<String>,
-    pub milestone_state: Option<String>,
-    pub closed_at: Option<String>,
-    pub reason: Option<String>,
+    state: Option<String>,
+    login: Option<String>,
+    id: Option<String>,
+    milestone_state: Option<String>,
+    closed_at: Option<String>,
+    reason: Option<String>,
 }
 
 pub async fn get_issue_impl(
-    owner: String,
-    repo: String,
+    owner: &str,
+    repo: &str,
+    github_token: &str,
     issue_nbr: i32,
-    github_token: String,
+    cycles: u128,
 ) -> Result<IssueResponse, IssueErr> {
     // Setup the URL and its query parameters
     let url = format!(
@@ -44,7 +44,7 @@ pub async fn get_issue_impl(
 
     // Create the request argument
     let request = CanisterHttpRequestArgument {
-        url: url.to_string(),
+        url,
         method: HttpMethod::GET,
         body: None,
         max_response_bytes: None,
@@ -52,86 +52,78 @@ pub async fn get_issue_impl(
         headers: request_headers,
     };
 
-    // FIXME
-    let cycles = 2_500_000_000;
-
     // Make the HTTP request and wait for the response
-    match http_request(request, cycles).await {
-        Ok((response,)) => {
-            // Parse the response body using the transform function
-            let transformed_response = transform_response(response.clone());
-
-            // Print the transformed response for debugging
-            println!("Transformed response: {:?}", transformed_response);
-
-            // Return the transformed response
-            Ok(transformed_response)
-        }
-        Err((rejection_code, message)) => {
+    http_request(request, cycles)
+        .await
+        .map_err(|(rejection_code, message)| {
             let error_message = format!(
                 "The http_request resulted in an error. RejectionCode: {:?}, Error: {}",
                 rejection_code, message
             );
-            Err(IssueErr::Rejected { error_message })
-        }
-    }
+            IssueErr::Rejected { error_message }
+        })
+        .and_then(|(response,)| transform_response(response))
 }
 
 // Define a function to transform the response body
-fn transform_response(raw_response: HttpResponse) -> IssueResponse {
+fn transform_response(raw_response: HttpResponse) -> Result<IssueResponse, IssueErr> {
     // Deserialize the raw response body into a serde_json::Value
-    let parsed_response: Value = serde_json::from_slice(&raw_response.body)
-        .unwrap_or_else(|e| panic!("Failed to parse JSON response: {}", e));
+    let parsed_response: Value =
+        serde_json::from_slice(&raw_response.body).map_err(|_| IssueErr::Rejected {
+            error_message: "Failed to parse JSON response: {}".to_string(),
+        })?;
 
     // Print the parsed response for debugging
     println!("Parsed response: {:?}", parsed_response);
 
-    // Extract only the desired fields from the parsed response
-    let transformed_response = parsed_response
-        .as_object()
-        .and_then(|obj| {
-            // Extract fields from the object and construct a new object with only the desired fields
-            let state = obj
-                .get("state")
-                .map(|value| value.as_str().map(|s| s.to_string()))
-                .flatten();
-            let login = obj
-                .get("closed_by")
-                .and_then(|closed_by| closed_by.get("login"))
-                .and_then(|value| value.as_str().map(|s| s.to_string()));
-            let id = obj
-                .get("closed_by")
-                .and_then(|closed_by| closed_by.get("id"))
-                .and_then(|value| value.as_i64().map(|s| s.to_string()));
-            //TODO: check why are we trying to catch milestone_state,
-            //may "state_reason": "completed" fullfill our needs?
-            let milestone_state = obj
-                .get("milestone")
-                .and_then(|milestone| milestone.get("state"))
-                .and_then(|value| value.as_str().map(|s| s.to_string()));
-            let closed_at = obj
-                .get("closed_at")
-                .map(|value| value.as_str().map(|s| s.to_string()))
-                .flatten();
-            let reason = obj
-                .get("state_reason")
-                .map(|value| value.as_str().map(|s| s.to_string()))
-                .flatten();
+    let obj = parsed_response.as_object().ok_or(IssueErr::Rejected {
+        error_message: "Failed to map parsed JSON response as object: {}".to_string(),
+    })?;
 
-            // Construct the transformed response object
-            Some(IssueResponse {
-                state,
-                login,
-                id,
-                milestone_state,
-                closed_at,
-                reason,
-            })
-        })
-        .unwrap_or_else(|| panic!("Failed to extract fields from parsed response"));
+    // Extract fields from the parsed object
+    // and construct a new object with only the desired fields
+    let state = obj
+        .get("state")
+        .and_then(|value| value.as_str())
+        .map(|s| s.to_string());
+    let login = obj
+        .get("closed_by")
+        .and_then(|closed_by| closed_by.get("login"))
+        .and_then(|value| value.as_str())
+        .map(|s| s.to_string());
+    let id = obj
+        .get("closed_by")
+        .and_then(|closed_by| closed_by.get("id"))
+        .and_then(|value| value.as_i64())
+        .map(|s| s.to_string());
+    //TODO: check why are we trying to catch milestone_state,
+    //may "state_reason": "completed" fullfill our needs?
+    let milestone_state = obj
+        .get("milestone")
+        .and_then(|milestone| milestone.get("state"))
+        .and_then(|value| value.as_str())
+        .map(|s| s.to_string());
+    let closed_at = obj
+        .get("closed_at")
+        .and_then(|value| value.as_str())
+        .map(|s| s.to_string());
+    let reason = obj
+        .get("state_reason")
+        .and_then(|value| value.as_str())
+        .map(|s| s.to_string());
+
+    // Construct the transformed response object
+    let transformed_response = IssueResponse {
+        state,
+        login,
+        id,
+        milestone_state,
+        closed_at,
+        reason,
+    };
 
     // Print the transformed response for debugging
     println!("Transformed response: {:?}", transformed_response);
 
-    transformed_response
+    Ok(transformed_response)
 }

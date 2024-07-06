@@ -62,12 +62,8 @@ async fn get_issue(github_token: String) -> Result<IssueResponse, IssueErr> {
     let owner = "input-output-hk".to_string();
     let repo = "hydra".to_string();
     let issue_nbr = 1218;
-    let client = GithubClient {
-        owner,
-        repo,
-        github_token,
-    };
-    return client.get_issue(issue_nbr).await;
+    let client = GithubClient::new(owner, repo, github_token);
+    client.get_issue(issue_nbr).await
 }
 
 #[ic_cdk::update(guard=is_canister_custodian_guard)]
@@ -75,12 +71,8 @@ async fn get_fixed_by(github_token: String) -> Result<String, FixedByErr> {
     let owner = "input-output-hk".to_string();
     let repo = "hydra".to_string();
     let issue_nbr = 1370;
-    let client = GithubClient {
-        owner,
-        repo,
-        github_token,
-    };
-    return client.get_fixed_by(issue_nbr).await;
+    let client = GithubClient::new(owner, repo, github_token);
+    client.get_fixed_by(issue_nbr).await
 }
 
 #[ic_cdk::update(guard=is_canister_custodian_guard)]
@@ -88,12 +80,8 @@ async fn get_is_merged(github_token: String) -> Result<String, IsMergedErr> {
     let owner = "input-output-hk".to_string();
     let repo = "hydra".to_string();
     let pr_nbr = 1266;
-    let client = GithubClient {
-        owner,
-        repo,
-        github_token,
-    };
-    return client.get_is_merged(pr_nbr).await;
+    let client = GithubClient::new(owner, repo, github_token);
+    client.get_is_merged(pr_nbr).await
 }
 
 #[ic_cdk::update(guard=is_canister_custodian_guard)]
@@ -101,12 +89,8 @@ async fn get_merged_details(github_token: String) -> Result<PrDetailsResponse, M
     let owner = "input-output-hk".to_string();
     let repo = "hydra".to_string();
     let pr_nbr = 1266;
-    let client = GithubClient {
-        owner,
-        repo,
-        github_token,
-    };
-    return client.get_merged_details(pr_nbr).await;
+    let client = GithubClient::new(owner, repo, github_token);
+    client.get_merged_details(pr_nbr).await
 }
 
 #[ic_cdk::update(guard=is_canister_custodian_guard)]
@@ -114,17 +98,13 @@ async fn get_user_exists(github_token: String) -> Result<String, UserExistsError
     let owner = "input-output-hk".to_string();
     let repo = "hydra".to_string();
     let user_id = "daguis".to_string();
-    let client = GithubClient {
-        owner,
-        repo,
-        github_token,
-    };
-    return client.get_user_exists(user_id).await;
+    let client = GithubClient::new(owner, repo, github_token);
+    client.get_user_exists(user_id).await
 }
 
 // BOUNTY SERVICE
 #[ic_cdk::init]
-fn init(args: Option<InitArgs>) -> () {
+fn init(args: Option<InitArgs>) {
     init_impl(time(), caller(), args);
 }
 
@@ -134,7 +114,7 @@ fn accept(
     github_issue_id: IssueId,
     github_pr_id: PullRequestId,
 ) -> AcceptReceipt {
-    return accept_impl(github_user_id, github_issue_id, github_pr_id, time());
+    accept_impl(github_user_id, github_issue_id, github_pr_id, time())
 }
 
 #[ic_cdk::update(guard=is_canister_custodian_guard)]
@@ -143,18 +123,18 @@ fn decline(
     github_issue_id: IssueId,
     github_pr_id: PullRequestId,
 ) -> DeclineReceipt {
-    return decline_impl(github_user_id, github_issue_id, github_pr_id);
+    decline_impl(github_user_id, github_issue_id, github_pr_id)
 }
 
 #[ic_cdk::update(guard=is_canister_custodian_guard)]
 async fn deposit() -> DepositReceipt {
-    return deposit_impl().await;
+    deposit_impl().await
 }
 
 // #[ic_cdk::update(guard=is_canister_custodian_guard)]
 #[ic_cdk::update]
 async fn healthcheck() -> String {
-    return "OK".to_string();
+    "OK".to_string()
 }
 
 #[ic_cdk::update(guard=is_canister_custodian_guard)]
@@ -163,18 +143,18 @@ fn register_issue(
     github_issue_id: IssueId,
     amount: Nat,
 ) -> RegisterIssueReceipt {
-    return register_issue_impl(github_user_id, github_issue_id, amount, time());
+    register_issue_impl(github_user_id, github_issue_id, amount, time())
 }
 
 #[ic_cdk::update(guard=is_canister_custodian_guard)]
 fn unregister_issue(github_user_id: UserId, github_issue_id: IssueId) -> UnRegisterIssueReceipt {
-    return unregister_issue_impl(github_user_id, github_issue_id);
+    unregister_issue_impl(github_user_id, github_issue_id)
 }
 
 // USER SERVICE
 #[ic_cdk::update(guard=is_canister_custodian_guard)]
 fn register_user(github_user_id: UserId) -> RegisterUserReceipt {
-    return register_user_impl(github_user_id, time());
+    register_user_impl(github_user_id, time())
 }
 
 #[ic_cdk::update(guard=is_canister_custodian_guard)]
@@ -182,5 +162,5 @@ fn upsert_user_wallet(
     github_user_id: UserId,
     wallet: Option<Principal>,
 ) -> UpsertUserWalletReceipt {
-    return upsert_user_wallet_impl(github_user_id, wallet);
+    upsert_user_wallet_impl(github_user_id, wallet)
 }

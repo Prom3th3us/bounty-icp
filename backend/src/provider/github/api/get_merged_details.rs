@@ -1,39 +1,37 @@
+use candid::CandidType;
 use ic_cdk::api::management_canister::http_request::{
     http_request, CanisterHttpRequestArgument, HttpMethod, HttpResponse,
 };
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use candid::CandidType;
-use serde::{Deserialize, Serialize};
+use crate::provider::github::utils::{github_api_host, mk_request_headers};
 
-use super::super::utils::{github_api_host, mk_request_headers};
-
-// Define the Closing PR details struct to represent the transformed response
 #[derive(Debug, Serialize, Deserialize, CandidType)]
 pub struct PrDetailsResponse {
-    pub state: Option<String>,
-    pub closed_at: Option<String>,
-    pub merge_commit_sha: Option<String>,
-    pub merged_at: Option<String>,
-    pub links: Option<Link>,
-    pub merged: Option<bool>,
-    pub merged_by: Option<User>,
+    state: Option<String>,
+    closed_at: Option<String>,
+    merge_commit_sha: Option<String>,
+    merged_at: Option<String>,
+    links: Option<Link>,
+    merged: Option<bool>,
+    merged_by: Option<User>,
 }
 
 #[derive(Debug, Serialize, Deserialize, CandidType)]
 pub struct Link {
-    pub issue: IssueLink,
+    issue: IssueLink,
 }
 
 #[derive(Debug, Serialize, Deserialize, CandidType, Default)]
 pub struct IssueLink {
-    pub href: String,
+    href: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, CandidType)]
 pub struct User {
-    pub login: String,
-    pub id: u64,
+    login: String,
+    id: u64,
 }
 
 #[derive(Debug, Serialize, Deserialize, CandidType)]
@@ -42,10 +40,11 @@ pub enum MergeDetailsErr {
 }
 
 pub async fn get_merge_details_impl(
-    owner: String,
-    repo: String,
+    owner: &str,
+    repo: &str,
+    github_token: &str,
     pr_nbr: i32,
-    github_token: String,
+    cycles: u128,
 ) -> Result<PrDetailsResponse, MergeDetailsErr> {
     // Setup the URL and its query parameters
     let url = format!(
@@ -61,7 +60,7 @@ pub async fn get_merge_details_impl(
 
     // Create the request argument
     let request = CanisterHttpRequestArgument {
-        url: url.to_string(),
+        url,
         method: HttpMethod::GET,
         body: None,
         max_response_bytes: None,
@@ -69,109 +68,92 @@ pub async fn get_merge_details_impl(
         headers: request_headers,
     };
 
-    // FIXME
-    let cycles = 2_500_000_000;
-
     // Make the HTTP request and wait for the response
-    match http_request(request, cycles).await {
-        Ok((response,)) => {
-            // Parse the response body using the transform function
-            let transformed_response = transform_response(response.clone());
-
-            // Print the transformed response for debugging
-            println!("Transformed response: {:?}", transformed_response);
-
-            // Return the transformed response
-            Ok(transformed_response)
-        }
-        Err((rejection_code, message)) => {
+    http_request(request, cycles)
+        .await
+        .map_err(|(rejection_code, message)| {
             let error_message = format!(
                 "The http_request resulted in an error. RejectionCode: {:?}, Error: {}",
                 rejection_code, message
             );
-            Err(MergeDetailsErr::Rejected { error_message })
-        }
-    }
+            MergeDetailsErr::Rejected { error_message }
+        })
+        .and_then(|(response,)| transform_response(response))
 }
 
 // Define a function to transform the response body
-fn transform_response(raw_response: HttpResponse) -> PrDetailsResponse {
+fn transform_response(raw_response: HttpResponse) -> Result<PrDetailsResponse, MergeDetailsErr> {
     // Deserialize the raw response body into a serde_json::Value
-    let parsed_response: Value = serde_json::from_slice(&raw_response.body)
-        .unwrap_or_else(|e| panic!("Failed to parse JSON response: {}", e));
+    let parsed_response: Value =
+        serde_json::from_slice(&raw_response.body).map_err(|_| MergeDetailsErr::Rejected {
+            error_message: "Failed to parse JSON response: {}".to_string(),
+        })?;
 
     // Print the parsed response for debugging
     println!("Parsed response: {:?}", parsed_response);
 
-    // Extract only the desired fields from the parsed response
-    let transformed_response = parsed_response
+    let obj = parsed_response
         .as_object()
-        .and_then(|obj| {
-            // Extract fields from the object and construct a new object with only the desired fields
-            let state = obj
-                .get("state")
-                .map(|value| value.as_str().map(|s| s.to_string()))
-                .flatten();
-            let closed_at = obj
-                .get("closed_at")
-                .map(|value| value.as_str().map(|s| s.to_string()))
-                .flatten();
-            let merge_commit_sha = obj
-                .get("merge_commit_sha")
-                .map(|value| value.as_str().map(|s| s.to_string()))
-                .flatten();
-            let merged_at = obj
-                .get("merged_at")
-                .map(|value| value.as_str().map(|s| s.to_string()))
-                .flatten();
-            let links = obj
-                .get("_links")
-                .and_then(|value| value.get("issue"))
-                .and_then(|issue| issue.as_object())
-                .map(|issue| Link {
-                    issue: IssueLink {
-                        href: issue
-                            .get("href")
-                            .and_then(|href| href.as_str())
-                            .unwrap_or_default()
-                            .to_string(),
-                    },
-                })
-                .map(Some)
-                .unwrap_or_default();
-            let merged = obj.get("merged").map(|value| value.as_bool()).flatten();
-            let merged_by = obj
-                .get("merged_by")
-                .map(|value| {
-                    value.as_object().map(|user| User {
-                        login: user
-                            .get("login")
-                            .and_then(|login| login.as_str())
-                            .unwrap_or_default()
-                            .to_string(),
-                        id: user
-                            .get("id")
-                            .and_then(|id| id.as_u64())
-                            .unwrap_or_default(),
-                    })
-                })
-                .flatten();
+        .ok_or(MergeDetailsErr::Rejected {
+            error_message: "Failed to map parsed JSON response as object: {}".to_string(),
+        })?;
 
-            // Construct the transformed response object
-            Some(PrDetailsResponse {
-                state,
-                closed_at,
-                merge_commit_sha,
-                merged_at,
-                links,
-                merged,
-                merged_by,
-            })
+    let state = obj
+        .get("state")
+        .and_then(|value| value.as_str())
+        .map(|s| s.to_string());
+    let closed_at = obj
+        .get("closed_at")
+        .and_then(|value| value.as_str())
+        .map(|s| s.to_string());
+    let merge_commit_sha = obj
+        .get("merge_commit_sha")
+        .and_then(|value| value.as_str())
+        .map(|s| s.to_string());
+    let merged_at = obj
+        .get("merged_at")
+        .and_then(|value| value.as_str())
+        .map(|s| s.to_string());
+    let links = obj
+        .get("_links")
+        .and_then(|value| value.get("issue"))
+        .and_then(|issue| issue.as_object())
+        .and_then(|issue| {
+            issue
+                .get("href")
+                .and_then(|href| href.as_str())
+                .map(|s| s.to_string())
+                .map(|href| Link {
+                    issue: IssueLink { href },
+                })
+        });
+    let merged = obj.get("merged").and_then(|value| value.as_bool());
+    let merged_by = obj.get("merged_by").and_then(|value| {
+        value.as_object().and_then(|user| {
+            let m_login = user
+                .get("login")
+                .and_then(|login| login.as_str())
+                .map(|s| s.to_string());
+
+            let m_id = user.get("id").and_then(|id| id.as_u64());
+
+            m_login.and_then(|login| m_id.map(|id| User { login, id }))
         })
-        .unwrap_or_else(|| panic!("Failed to extract fields from parsed response"));
+    });
+
+    // Construct the transformed response object
+    let transformed_response = PrDetailsResponse {
+        state,
+        closed_at,
+        merge_commit_sha,
+        merged_at,
+        links,
+        merged,
+        merged_by,
+    };
 
     // Print the transformed response for debugging
     println!("Transformed response: {:?}", transformed_response);
 
-    transformed_response
+    Ok(transformed_response)
 }

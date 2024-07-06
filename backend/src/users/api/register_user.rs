@@ -1,6 +1,4 @@
-use crate::bounty::api::state::{self, GitHubUser};
-
-use crate::bounty::api::state::{Time, UserId};
+use crate::bounty::api::state::{self, GitHubUser, Time, UserId};
 
 pub type RegisterUserError = ();
 

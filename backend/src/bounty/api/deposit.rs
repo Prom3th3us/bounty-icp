@@ -1,12 +1,11 @@
 use super::*;
-use serde::{Deserialize, Serialize};
 use candid::{CandidType, Principal};
 use ic_cdk::api::{caller, id};
 use ic_ledger_types::{Memo, DEFAULT_SUBACCOUNT};
 use icrc1::{
-    Account, AllowanceArgs, Tokens, TransferFromArgs, ICRC1,
-    MAINNET_ICRC1_LEDGER_CANISTER_ID,
+    Account, AllowanceArgs, Tokens, TransferFromArgs, ICRC1, MAINNET_ICRC1_LEDGER_CANISTER_ID,
 };
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, CandidType, PartialEq)]
 pub enum DepositErr {

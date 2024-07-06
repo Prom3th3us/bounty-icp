@@ -1,4 +1,6 @@
+#[allow(unused)]
 use candid::{CandidType, Principal};
+use ic_cdk::print;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 

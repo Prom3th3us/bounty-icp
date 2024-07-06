@@ -1,10 +1,10 @@
+use candid::CandidType;
 use ic_cdk::api::management_canister::http_request::{
     http_request, CanisterHttpRequestArgument, HttpMethod,
 };
-
-use super::super::utils::{github_api_host, mk_request_headers};
-use candid::CandidType;
 use serde::{Deserialize, Serialize};
+
+use crate::provider::github::utils::{github_api_host, mk_request_headers};
 
 #[derive(Debug, Serialize, Deserialize, CandidType)]
 pub enum UserExistsError {
@@ -13,8 +13,9 @@ pub enum UserExistsError {
 
 //https://api.github.com/users/daguis
 pub async fn get_user_exists_impl(
+    github_token: &str,
     user_id: String,
-    github_token: String,
+    cycles: u128,
 ) -> Result<String, UserExistsError> {
     // Setup the URL and its query parameters
     let url = format!("https://{}/users/{}", github_api_host(), user_id);
@@ -23,7 +24,7 @@ pub async fn get_user_exists_impl(
 
     // Create the request argument
     let request = CanisterHttpRequestArgument {
-        url: url.to_string(),
+        url,
         method: HttpMethod::GET,
         body: None,
         max_response_bytes: None,
@@ -31,18 +32,15 @@ pub async fn get_user_exists_impl(
         headers: request_headers,
     };
 
-    // FIXME
-    let cycles = 2_500_000_000;
-
     // Make the HTTP request and wait for the response
-    match http_request(request, cycles).await {
-        Ok((response,)) => Ok(response.status.to_string()),
-        Err((rejection_code, message)) => {
+    http_request(request, cycles)
+        .await
+        .map(|(response,)| response.status.to_string())
+        .map_err(|(rejection_code, message)| {
             let error_message = format!(
                 "The http_request resulted in an error. RejectionCode: {:?}, Error: {}",
                 rejection_code, message
             );
-            Err(UserExistsError::Rejected { error_message })
-        }
-    }
+            UserExistsError::Rejected { error_message }
+        })
 }
