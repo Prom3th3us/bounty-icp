@@ -51,9 +51,8 @@ To kick off the E2E tests, you need to set up an environment with the following 
    dfx start --clean
    ```
 
-2. **Backend Canisters**: Deploy the backend canisters to the replica and generates the candid interface.
-
-   ```sh
+2 **Backend Canisters**: Deploy the backend canisters to the replica and generates thecandid interface
+   ```h
    make install
    npm run generate
    ```
@@ -112,3 +111,55 @@ INFO (server): Connected
 > Ensure your server is reachable from the internet.
 > If you want to test your project locally, you can use the following commands:
 > TODO!
+
+
+#### Components overview.
+
+  canisters 
+    backend:
+      candid: "backend/backend.did"
+      //review if stable (obtained from `make install`)
+      ic: "bkyz2-fmaaa-aaaaa-qaaaq-cai" 
+     
+    identity: 
+      candid: "icp/identity/identity.did"
+      ic: "rdmx6-jaaaa-aaaaa-aaadq-cai"
+
+   icrc1_ledger:
+     candid: "icp/icrc1/ledger/ledger.did"
+     ic: "mxzaz-hqaaa-aaaar-qaada-cai"
+
+   icrc1_index:
+     candid: "icp/icrc1/index/index.did"
+     ic: "n5wcd-faaaa-aaaar-qaaea-cai"
+      
+   principal_wallet:
+     //review if stable (obtained from `dfx identity get-wallet`)
+     ic: "bnz7o-iuaaa-aaaaa-qaaaa-cai" 
+
+
+### Helpers
+- List identities
+   dfx identity list
+
+- Current identity in the session
+   dfx identity whoami
+
+- Current identity principal
+   dfx identity get-principal
+
+- Current identity wallet
+   dfx identity get-wallet
+
+- Switch current identity
+   dfx identity use anonymous
+
+- Create new identity
+   dfx identity new ic_bounty
+
+- Display identity PEM definition
+   dfx identity export default
+
+- Display identity wallet balance (every call consumes cycles)
+   dfx canister status $(dfx identity get-wallet) | grep Balance
+
