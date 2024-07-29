@@ -42,7 +42,15 @@ const bountyApp = (app, options) => {
     if (command.startsWith('/bounty') && !isPullRequest) {
       // Handle bounty command
       const bountyAmount = command.split(' ')[1]
-      const commentBody = `Creating bounty of $${bountyAmount} for issue #${issue.number}`
+      await context.octokit.reactions.createForIssueComment({
+        owner: context.payload.repository.owner.login,
+        repo: context.payload.repository.name,
+        comment_id: context.id,
+        content: '+1' // La reacción que quieres agregar
+      });
+      //FIXME: call cannisters
+      const bountyDepositLink = "TODO!"
+      const commentBody = `Bounty of ${bountyAmount} created. Awaiting for deposit at ${bountyDepositLink}`
       await context.octokit.issues.createComment(context.issue({ body: commentBody }))
       app.log.info(commentBody)
     } else if (command.startsWith('/attempt') && !isPullRequest) {

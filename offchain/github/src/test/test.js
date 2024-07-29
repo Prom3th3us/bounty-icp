@@ -38,38 +38,79 @@ test.before(async () => {
   await startServer()
 })
 
+test.before.each(() => {
+  nock.cleanAll(); // Limpia todos los mocks antes de cada test
+});
+
 test.after(async () => {
   await server.stop()
 })
 
-// Test for /attach-bounty command on issue comment
-test('receives /attach-bounty command on issue comment', async function () {
+// TODO!: Test border cases like: 
+    // - El comentario dice /bounty-attached
+    // - El comentario dice /bounty -100
+    // - El comentario dice /bounty "whatever"
+    // - El comentario dice /bounty 100 "whatever"
+
+// Test for /bounty command on issue comment
+test('receives /bounty command on issue comment', async function () {
   const githubReceives = nock('https://api.github.com')
-  const apiUrl = issueId => `/repos/client-org/client-repo/issues/${issueId}/comments`
-  // When
+  const issueId = 1
+  const commentId = 2
+  const clientOrg = "client-org" 
+  const clientRepo = "client-repo"
+  const reactionCommentApiUrl = `/repos/${clientOrg}/${clientRepo}/issues/comments/${commentId}/reactions`
+  const issueCommentApiUrl = `/repos/${clientOrg}/${clientRepo}/issues/${issueId}/comments`
+  const bountyAmount = 100
+  const bountyDepositLink = "TODO!"
+  
+  // Variable para verificar el orden de las solicitudes
+  let callOrder = 0
+
+  // Given
   githubReceives
     .post(
-      apiUrl(1),
-      (requestBody) => {
-        assert.equal(requestBody, { body: 'Creating bounty of $100 for issue #1' })
+      reactionCommentApiUrl,
+      requestBody => {
+        // TODO!: Check request headers
+        assert.equal(JSON.stringify(requestBody), JSON.stringify({ content: "+1" }));
+        assert.is(callOrder, 0, 'reactionCommentApiUrl should be called first');
+        callOrder++
+        return true
+      }
+    )
+    .reply(201,{})
+
+  githubReceives
+    .post(
+      issueCommentApiUrl,
+      requestBody => {
+        // TODO!: Check request headers
+        assert.equal(JSON.stringify(requestBody), JSON.stringify({ 
+          body: `Bounty of ${bountyAmount} created. Awaiting for deposit at ${bountyDepositLink}`
+        }));
+        assert.is(callOrder, 1, 'issueCommentApiUrl should be called second');
+        callOrder++;
         return true
       }
     )
     .reply(201, {})
-  // Given   
+  
+  // When   
   await probot.receive({
     name: 'issue_comment',
-    id: '1',
+    id: commentId,
     payload: {
       action: 'created',
       repository: {
         owner: {
-          login: 'Prom3th3us'
+          //TODO!: Check if another user without permissions can attach bounty
+          login: clientOrg
         },
-        name: 'bounty-icp-gh-app'
+        name: clientRepo
       },
       issue: {
-        number: 1,
+        number: issueId,
         pull_request: null
       },
       comment: {
@@ -78,46 +119,13 @@ test('receives /attach-bounty command on issue comment', async function () {
     }
   })
   // Then
-  assert.equal(mock.activeMocks(), [])
-})
-
-ignore('receives /bounty command on issue comment', async function () {
-  const mock = nock('https://api.github.com')
-    .post(
-      '/repos/Prom3th3us/bounty-icp-gh-app/issues/1/comments',
-      (requestBody) => {
-        assert.equal(requestBody, { body: 'Creating bounty of $100 for issue #1' })
-        return true
-      }
-    )
-    .reply(201, {})
-
-  await probot.receive({
-    name: 'issue_comment',
-    id: '1',
-    payload: {
-      action: 'created',
-      repository: {
-        owner: {
-          login: 'Prom3th3us'
-        },
-        name: 'bounty-icp-gh-app'
-      },
-      issue: {
-        number: 1,
-        pull_request: null
-      },
-      comment: {
-        body: '/bounty 100'
-      }
-    }
-  })
-
-  assert.equal(mock.activeMocks(), [])
+  // assert.equal(mock.activeMocks(), [])
+  assert.is(nock.pendingMocks().length, 0, 'Not all nock interceptors were used!')
+  assert.is(callOrder, 2, 'Both API calls should have been made')
 })
 
 // Test for /attempt command on issue comment
-ignore('receives /attempt command on issue comment', async function () {
+test.skip('receives /attempt command on issue comment', async function () {
   const mock = nock('https://api.github.com')
     .post(
       '/repos/Prom3th3us/bounty-icp-gh-app/issues/1/comments',
@@ -153,7 +161,7 @@ ignore('receives /attempt command on issue comment', async function () {
 })
 
 // Test for /approve command on PR comment
-ignore('receives /approve command on PR comment', async function () {
+test.skip('receives /approve command on PR comment', async function () {
   const mock = nock('https://api.github.com')
     .post(
       '/repos/Prom3th3us/bounty-icp-gh-app/issues/1/comments',
@@ -188,7 +196,7 @@ ignore('receives /approve command on PR comment', async function () {
 })
 
 // Test for /claim command on PR body
-ignore('receives /claim command on PR body', async function () {
+test.skip('receives /claim command on PR body', async function () {
   const mock = nock('https://api.github.com')
     .post(
       '/repos/Prom3th3us/bounty-icp-gh-app/issues/1/comments',
