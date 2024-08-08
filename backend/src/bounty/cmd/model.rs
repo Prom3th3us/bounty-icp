@@ -1,7 +1,6 @@
 use candid::Nat;
 
-use crate::provider::github::api::get_merged_details::User;
-
+#[derive(Debug, Clone)]
 pub struct UserId {
     value: String,
 }
@@ -15,6 +14,8 @@ impl UserId {
         UserId { value }
     }
 }
+
+#[derive(Debug, Clone, Eq, Hash, PartialEq)]
 pub struct OrgId {
     value: String,
 }
@@ -29,6 +30,7 @@ impl OrgId {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct CommentId {
     value: String,
 }
@@ -43,6 +45,7 @@ impl CommentId {
     }
 }
 
+#[derive(Debug, Clone, Eq, Hash, PartialEq)]
 pub struct IssueId {
     value: String,
 }
@@ -57,6 +60,7 @@ impl IssueId {
     }
 }
 
+#[derive(Debug, Clone, Eq, Hash, PartialEq)]
 pub struct RepoId {
     value: String,
 }
@@ -71,6 +75,7 @@ impl RepoId {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct Time {
     value: u64,
 }
@@ -85,6 +90,7 @@ impl Time {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct Amount {
     value: Nat,
 }
@@ -99,6 +105,7 @@ impl Amount {
     }
 }
 
+#[derive(Debug, Clone, Eq, Hash, PartialEq)]
 pub struct IssuePk {
     org_id: OrgId,
     repo_id: RepoId,
@@ -125,6 +132,7 @@ impl IssuePk {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct DepositLink {
     value: String,
 }

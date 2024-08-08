@@ -1,9 +1,11 @@
+use super::db::*;
 use super::model::*;
 
 pub type Failure = ();
 pub type Success = DepositLink;
 
 pub fn bounty(
+    db: &mut Db,
     user_id: UserId,
     org_id: OrgId,
     comment_id: CommentId,
@@ -29,17 +31,21 @@ pub fn bounty(
 #[cfg(test)]
 
 mod test_bounty {
+    use crate::bounty::api::state;
+
     use super::*;
     use candid::Nat;
     /*
     1: On "/bounty Amount" for existing issue:
-    Verify an issue exists
+    Verify an issue_pk exists
     Verify a bounty(amount) is created
     Verify the bounty is attached to the issue
     Verify a deposit link is returned
     */
     #[test]
     fn test_1() {
+        let mut db = Db::new();
+
         let user_id = UserId::new(String::from("user_id_1"));
         let org_id = OrgId::new(String::from("org_id_1"));
         let comment_id = CommentId::new(String::from("comment_id_1"));
@@ -48,9 +54,23 @@ mod test_bounty {
         let amount = Amount::new(Nat::from(100 as u64));
         let now = Time::new(20240808 as u64);
 
-        let result = bounty(user_id, org_id, comment_id, issue_id, repo_id, amount, now);
+        let issue_pk = IssuePk::new(org_id.clone(), repo_id.clone(), issue_id.clone());
+
+        assert!(&db.find(&issue_pk).is_none());
+
+        let result = bounty(
+            &mut db,
+            user_id,
+            org_id.clone(),
+            comment_id,
+            issue_id.clone(),
+            repo_id.clone(),
+            amount,
+            now,
+        );
 
         assert!(result.is_ok());
+        assert!(&db.find(&issue_pk).is_some());
     }
 
     /*

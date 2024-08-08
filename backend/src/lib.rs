@@ -36,6 +36,7 @@ pub mod bounty {
     }
     pub mod cmd {
         pub mod bounty;
+        pub mod db;
         pub mod model;
     }
 }
