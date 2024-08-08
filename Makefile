@@ -51,6 +51,7 @@ clean:
 	rm -fr .dfx
 	rm -fr node_modules
 	rm -fr target
+	rm -fr src
 
 # tests
 .PHONY: test-1

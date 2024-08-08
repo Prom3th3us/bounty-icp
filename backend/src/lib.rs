@@ -34,6 +34,10 @@ pub mod bounty {
         pub mod state;
         pub mod unregister_issue;
     }
+    pub mod cmd {
+        pub mod bounty;
+        pub mod model;
+    }
 }
 
 use bounty::api::accept::{accept_impl, AcceptReceipt};
