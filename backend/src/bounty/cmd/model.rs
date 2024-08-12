@@ -1,6 +1,8 @@
+use std::ops::{Add, Mul};
+
 use candid::Nat;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct UserId {
     value: String,
 }
@@ -30,7 +32,7 @@ impl OrgId {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct CommentId {
     value: String,
 }
@@ -75,7 +77,7 @@ impl RepoId {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Time {
     value: u64,
 }
@@ -90,7 +92,7 @@ impl Time {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Amount {
     value: Nat,
 }
@@ -102,6 +104,28 @@ impl Amount {
 
     pub fn new(value: Nat) -> Self {
         Amount { value }
+    }
+}
+
+// TODO! should be a derive
+impl Add for Amount {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Amount {
+            value: self.value + rhs.value,
+        }
+    }
+}
+
+// TODO! should be a derive
+impl Mul for Amount {
+    type Output = Self;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        Amount {
+            value: self.value * rhs.value,
+        }
     }
 }
 
@@ -132,7 +156,7 @@ impl IssuePk {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct DepositLink {
     value: String,
 }
