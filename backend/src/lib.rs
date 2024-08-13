@@ -35,9 +35,12 @@ pub mod bounty {
         pub mod unregister_issue;
     }
     pub mod cmd {
-        pub mod bounty;
         pub mod db;
         pub mod model;
+        pub mod bounty {
+            pub mod api;
+            mod fixture;
+        }
     }
 }
 

@@ -2,6 +2,8 @@ use std::{borrow::BorrowMut, collections::HashMap};
 
 use candid::Nat;
 
+use crate::provider::github::api::get_merged_details::User;
+
 use super::model::*;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -11,6 +13,7 @@ pub struct Bounty {
     comment_id: CommentId,
     deposit_link: DepositLink,
     issue_pk: IssuePk,
+    user_id: UserId,
 }
 
 impl Bounty {
@@ -34,12 +37,17 @@ impl Bounty {
         &self.issue_pk
     }
 
+    pub fn user_id(&self) -> &UserId {
+        &self.user_id
+    }
+
     pub fn new(
         amount: Amount,
         created_at: Time,
         comment_id: CommentId,
         deposit_link: DepositLink,
         issue_pk: IssuePk,
+        user_id: UserId,
     ) -> Self {
         Bounty {
             amount,
@@ -47,6 +55,7 @@ impl Bounty {
             comment_id,
             deposit_link,
             issue_pk,
+            user_id,
         }
     }
 }
