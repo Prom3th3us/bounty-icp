@@ -31,21 +31,37 @@ pub fn bounty(
 #[cfg(test)]
 
 mod test_bounty {
-    use crate::bounty::api::state;
-
     use super::*;
     use candid::Nat;
 
+    fn issue_pk_sanity(
+        db: &Db,
+        issue_pk: &IssuePk,
+        expected_result: &DepositLink,
+        expected_amount: &Amount,
+    ) {
+        assert!(db.find(&issue_pk).is_some());
+
+        assert_eq!(db.total_bounty_count_for(&issue_pk), Nat::from(1 as u64));
+        assert_eq!(
+            db.total_bounty_amount_for(&issue_pk),
+            expected_amount.clone()
+        );
+
+        let db_deposit_link = db.find(&issue_pk).unwrap().deposit_link();
+
+        assert_eq!(expected_result, db_deposit_link)
+    }
+
     /*
     1: On "/bounty Amount" for non-existing issue:
-    Verify an issue_pk exists
     Verify a bounty(amount) is created
     Verify the bounty is attached to the issue
     Verify a deposit link is returned
     */
     #[test]
     fn test_1() {
-        let mut db = Db::new();
+        let mut db: Db = Db::new();
 
         let user_id = UserId::new(String::from("user_id_1"));
         let org_id = OrgId::new(String::from("org_id_1"));
@@ -57,8 +73,6 @@ mod test_bounty {
 
         let issue_pk = IssuePk::new(org_id.clone(), repo_id.clone(), issue_id.clone());
 
-        assert!(&db.find(&issue_pk).is_none());
-
         let result = bounty(
             &mut db,
             user_id,
@@ -66,17 +80,17 @@ mod test_bounty {
             comment_id,
             issue_id.clone(),
             repo_id.clone(),
-            amount,
+            amount.clone(),
             now,
         );
 
         assert!(result.is_ok());
-        assert!(&db.find(&issue_pk).is_some());
+
+        issue_pk_sanity(&db, &issue_pk, &result.unwrap(), &amount);
     }
 
     /*
-        3: On multiple "/bounty Amount" for existing issue:
-            Verify an issue non-exists
+        3: On multiple "/bounty Amount" for non-existing issue:
             Verify a bounty1(amount) is created
             Verify the bounty1 is attached to the issue
             Verify a deposit link1 is returned
@@ -91,13 +105,12 @@ mod test_bounty {
 
     /*
         4: Guarantee issue_pk is unique across diff repos over the same org:
-            Verify an issue_pk non-exists
             Verify a bounty1(amount, org_1, repo_1, issue_id_1) is created
-            Verify the bounty1 is attached to the issue_pk1
-            Verify a deposit link1 is returned
+            Verify the bounty1 is attached to the issue_pk1 *
+            Verify a deposit link1 is returned *
             Verify a bounty2(amount, org_1, repo_2, issue_id_1) is created
-            Verify the bounty2 is attached to the issue_pk2
-            Verify a deposit link2 is returned
+            Verify the bounty2 is attached to the issue_pk2 *
+            Verify a deposit link2 is returned *
             Verify a deposit link1 and deposit link2 are different
 
     */
@@ -112,6 +125,7 @@ mod test_bounty {
         let now = Time::new(20240808 as u64);
 
         let repo_id_1 = RepoId::new(String::from("repo_id_1"));
+        let issue_pk_1 = IssuePk::new(org_id.clone(), repo_id_1.clone(), issue_id.clone());
 
         let result_1 = bounty(
             &mut db,
@@ -126,15 +140,30 @@ mod test_bounty {
 
         assert!(result_1.is_ok());
 
+        issue_pk_sanity(&db, &issue_pk_1, &result_1.clone().unwrap(), &amount);
+
         let repo_id_2 = RepoId::new(String::from("repo_id_2"));
+        let issue_pk_2 = IssuePk::new(org_id.clone(), repo_id_2.clone(), issue_id.clone());
 
         let result_2 = bounty(
-            &mut db, user_id, org_id, comment_id, issue_id, repo_id_2, amount, now,
+            &mut db,
+            user_id,
+            org_id,
+            comment_id,
+            issue_id,
+            repo_id_2,
+            amount.clone(),
+            now,
         );
 
         assert!(result_2.is_ok());
 
-        assert_ne!(result_1, result_2)
+        issue_pk_sanity(&db, &issue_pk_2, &result_2.clone().unwrap(), &amount);
+
+        assert_ne!(result_1, result_2);
+
+        assert_eq!(db.total_bounty_amount(), amount.clone() + amount);
+        assert_eq!(db.total_bounty_count(), Nat::from(2 as u64));
     }
 
     /*
@@ -159,6 +188,7 @@ mod test_bounty {
 
         let org_id_1 = OrgId::new(String::from("org_id_1"));
         let repo_id_1 = RepoId::new(String::from("repo_id_1"));
+        let issue_pk_1 = IssuePk::new(org_id_1.clone(), repo_id_1.clone(), issue_id.clone());
 
         let result_1 = bounty(
             &mut db,
@@ -173,16 +203,31 @@ mod test_bounty {
 
         assert!(result_1.is_ok());
 
+        issue_pk_sanity(&db, &issue_pk_1, &result_1.clone().unwrap(), &amount);
+
         let org_id_2 = OrgId::new(String::from("org_id_2"));
         let repo_id_2 = RepoId::new(String::from("repo_id_2"));
+        let issue_pk_2 = IssuePk::new(org_id_2.clone(), repo_id_2.clone(), issue_id.clone());
 
         let result_2 = bounty(
-            &mut db, user_id, org_id_2, comment_id, issue_id, repo_id_2, amount, now,
+            &mut db,
+            user_id,
+            org_id_2,
+            comment_id,
+            issue_id,
+            repo_id_2,
+            amount.clone(),
+            now,
         );
 
         assert!(result_2.is_ok());
 
-        assert_ne!(result_1, result_2)
+        issue_pk_sanity(&db, &issue_pk_2, &result_2.clone().unwrap(), &amount);
+
+        assert_ne!(result_1, result_2);
+
+        assert_eq!(db.total_bounty_amount(), amount.clone() + amount);
+        assert_eq!(db.total_bounty_count(), Nat::from(2 as u64));
     }
 
     /*
@@ -221,6 +266,8 @@ mod test_bounty {
 
         assert!(result_1.is_ok());
 
+        issue_pk_sanity(&db, &issue_pk, &result_1.clone().unwrap(), &amount);
+
         let result_2 = bounty(
             &mut db,
             user_id,
@@ -234,9 +281,11 @@ mod test_bounty {
 
         assert!(result_2.is_ok());
 
+        issue_pk_sanity(&db, &issue_pk, &result_1.clone().unwrap(), &amount);
+
         assert_eq!(result_1, result_2);
-        assert!(db.find(&issue_pk).is_some());
 
         assert_eq!(db.total_bounty_amount_for(&issue_pk), amount);
+        assert_eq!(db.total_bounty_count(), Nat::from(1 as u64));
     }
 }
