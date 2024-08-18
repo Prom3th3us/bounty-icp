@@ -125,3 +125,9 @@ test: install
 .SILENT: test-deposit
 test-deposit: # install
 	./make/test/deposit.sh
+
+
+.PHONY: test-deposit2
+.SILENT: test-deposit2
+test-deposit2: # install
+	./make/test/deposit2.sh

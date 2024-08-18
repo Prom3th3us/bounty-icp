@@ -7,9 +7,9 @@ balance_of() {
         "(record{owner = principal \"$1\"; })"
 }
 
-approve_allowance() {
-    dfx canister call --output=json icrc1_ledger icrc2_approve \
-        "(record { amount = $1; spender = record{owner = principal \"$2\";} })"
+transfer_amount() {
+    dfx canister call --output=json icrc1_ledger icrc1_transfer \
+        "(record { amount = $1; to = record{owner = principal \"$2\";} })"
 }
 
 deposit() {
@@ -27,8 +27,7 @@ echo "Caller initial balance: $(balance_of $CALLER)"
 echo "Backend initial balance: $(balance_of $BACKEND)"
 
 # deposit
-echo "Backend allowance: $(approve_allowance 100_000 $BACKEND)"
-echo "Backend deposit: $(deposit)"
+echo "Backend allowance: $(transfer_amount 100_000 $BACKEND)"
 
 # check final balances
 sleep 3

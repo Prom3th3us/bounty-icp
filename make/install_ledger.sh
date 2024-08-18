@@ -5,14 +5,18 @@ set -e
 TOKEN_NAME="Local ckBTC"
 TOKEN_SYMBOL=LckBTC
 PRE_MINTED_TOKENS=10_000_000_000
-TRANSFER_FEE=10_000
+TRANSFER_FEE=0
 TRIGGER_THRESHOLD=2000
 NUM_OF_BLOCK_TO_ARCHIVE=1000
 CYCLE_FOR_ARCHIVE_CREATION=10000000000000
 FEATURE_FLAGS=true
 
 # TODO! check must mock the same used in mainnet.
-dfx identity new minter
+if ! dfx identity list | grep -q "minter"; then
+    echo "Creating new identity 'minter'..."
+    dfx identity new minter
+fi
+
 dfx identity use minter
 MINTER=$(dfx identity get-principal)
 dfx identity use default
