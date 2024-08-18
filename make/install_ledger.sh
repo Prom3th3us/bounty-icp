@@ -11,8 +11,10 @@ NUM_OF_BLOCK_TO_ARCHIVE=1000
 CYCLE_FOR_ARCHIVE_CREATION=10000000000000
 FEATURE_FLAGS=true
 
-# FIXME: create propper identity
-MINTER="t2y5w-qp34w-qixaj-s67wp-syrei-5yqse-xbed6-z5nsd-fszmf-izgt2-lqe"
+# TODO! check must mock the same used in mainnet.
+dfx identity new minter
+dfx identity use minter
+MINTER=$(dfx identity get-principal)
 dfx identity use default
 DEFAULT=$(dfx identity get-principal)
 # FIXME: create propper identity
